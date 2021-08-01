@@ -1,29 +1,54 @@
+"""Command line tool to query databases via ODBC. Friendly to Emacs SQLi mode.
+
+Usage:
+    cmd2sql (-h | --help)
+    cmd2sql --conn_string=<connection_string> [--commands=<path>]
+    cmd2sql (--driver=<odbc_driver> | --dsn=<dsn>)
+            [--server=<server> --database=<database>]
+            [--user=<username> --pass=<password> --integrated]
+            [--commands=<path>]
+
+Options:
+  -h --help             Show this screen.
+
+To provide a known connection string just use:
+  --conn_string=<connection_string>
+
+Else it will be built using the individual parameters, start with how and what
+to connect to:
+
+  --dsn=<dsn>            If using a connection defined in a DSN, specify the
+                         name here.
+  --driver=<driver>      The ODBC driver to use, required if not using DSN.
+
+  --server=<server>      Server to connect to. Omit for SQLite.
+  --database=<database>  Database to open. Can be omitted if it is declared in
+                         a DSN.
+
+Then for security, if needed (can be ommited for SQLite or if DSN, etc.):
+
+  --integrated           Use Integrated Security (MSSQL). If included it takes
+                         precedence over user/pass
+  --user=<username>      SQL Login user
+  --pass=<password>      SQL Login password
+
+Last optional parameter:
+  --commands=<path>      Path to the INI file that declares custom commands.
+                         [default: $XDG_CONFIG_HOME/cmd2sql/commands.ini]
+
+If the value for a parameter starts with ENV={name_here} then it is read from
+the environment variable NAME_HERE. For example: --pass=ENV=DB_SECRET would get
+the value for <password> from $DB_SECRET.
 """
-docopt definition here
-"""
+
 from docopt import docopt
-from datetime import datetime
 from . import cmd2sql
-import logging
 import sys
+
 
 def main():
     args = docopt(__doc__)
-    # default to root level
-    if args["--debug"]:
-        log_level = getattr(logging, args["--debug"].upper())
-        log_file = os.path.join(os.getcwd(), "sql2cmd.debug")
-        print(f"-----Writing debug information to {log_file} with",
-              f"level {args['--debug']}-----\n\n")
-        logging.basicConfig(filename=log_file,
-                            encoding='utf-8',
-                            level=log_level)
-        logging.warning("-----Started running %s-----",
-                        datetime.now().isoformat(sep=" ")[:19])
-    else:
-        logging.basicConfig(level=logging.CRITICAL)
-
-    cmd2sql.empty()
+    cmd2sql.print_args(args)
 
 if __name__ == "__main__":
     try:
@@ -31,4 +56,4 @@ if __name__ == "__main__":
         # on unhandled exception the exit code will be non-zero
         sys.exit(0)
     except Exception as e:
-        print(e, "\n")
+        print("Error: ", e, "\n")
