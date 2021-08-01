@@ -27,8 +27,7 @@ to connect to:
 
 Then for security, if needed (can be ommited for SQLite or if DSN, etc.):
 
-  --integrated           Use Integrated Security (MSSQL). If included it takes
-                         precedence over user/pass
+  --integrated           Use Integrated Security (MSSQL).
   --user=<username>      SQL Login user
   --pass=<password>      SQL Login password
 
