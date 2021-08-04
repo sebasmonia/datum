@@ -1,3 +1,5 @@
+"""Contains all the setup for new connections to the database.
+"""
 import pyodbc
 import struct
 
@@ -11,6 +13,7 @@ _database = None
 _user = None
 _pass = None
 _integrated = False
+
 
 def initialize(docopt_args):
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
