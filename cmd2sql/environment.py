@@ -23,9 +23,11 @@ Return default configuration values if the file isn't present."""
         return _read_config(config_file_path)
     else:
         base_dir = os.getenv("XDG_CONFIG_HOME")
+        # no specific XDG_CONFIG_HOME, then do fallback as outlined in
+        # https://specifications.freedesktop.org/basedir-spec/latest/
         if not base_dir:
-            base_dir = os.path.join(os.getenv("HOME"),
-                                    ".config")
+            # as seen in https://stackoverflow.com/a/4028943
+            base_dir = os.path.join(os.path.expanduser("~"), ".config")
         config_file_path = os.path.join(base_dir,
                                         "cmd2sql",
                                         config_file_path)
@@ -38,7 +40,6 @@ Return default configuration values if the file isn't present."""
 
 
 def _read_config(config_file_path):
-    print("Reading from", config_file_path,"------")
     config = {}
     config_file = configparser.ConfigParser()
     config_file.read(config_file_path)

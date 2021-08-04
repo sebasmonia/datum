@@ -16,7 +16,6 @@ def initialize(args):
     global custom_commands
     environment.resolve_envvar_args(args)
     config = environment.get_config_dict(args["--config"])
-    print(config)
+    custom_commands = config["custom_commands"]
     connect.initialize(args)
     # connect.get_connection()
-    print("\n\n---DONE---\n\n")
