@@ -29,7 +29,7 @@ Return default configuration values if the file isn't present."""
             # as seen in https://stackoverflow.com/a/4028943
             base_dir = os.path.join(os.path.expanduser("~"), ".config")
         config_file_path = os.path.join(base_dir,
-                                        "cmd2sql",
+                                        "datum",
                                         config_file_path)
         if os.path.isfile(config_file_path):
             return _read_config(config_file_path)

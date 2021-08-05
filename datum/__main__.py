@@ -1,12 +1,12 @@
 """Command line tool to query databases via ODBC.
 
 Usage:
-    cmd2sql (-h | --help)
-    cmd2sql --conn_string=<connection_string> [--config=<path>]
-    cmd2sql (--driver=<odbc_driver> | --dsn=<dsn>)
-            [--server=<server> --database=<database>]
-            [--user=<username> --pass=<password> --integrated]
-            [--config=<path>]
+    datum (-h | --help)
+    datum --conn_string=<connection_string> [--config=<path>]
+    datum (--driver=<odbc_driver> | --dsn=<dsn>)
+          [--server=<server> --database=<database>]
+          [--user=<username> --pass=<password> --integrated]
+          [--config=<path>]
 
 Options:
   -h --help             Show this screen.
@@ -35,21 +35,21 @@ Last optional parameter:
   --config=<path>        Path to the INI file that declares config values and
                          custom commands. Can be a full path, or just a name,
                          in which case it is assumed the file is in the dir
-                         $XDG_CONFIG_HOME/cmd2sql [default: config.ini]
+                         $XDG_CONFIG_HOME/datum [default: config.ini]
 
 If the value for any parameter starts with ENV= then the contents of an env var
 are used. For example: --pass=ENV=DB_SECRET would get the value for <password>
 from $DB_SECRET.
 """
 from docopt import docopt
-from . import cmd2sql
+from . import datum
 import sys
 
 
 def main():
     args = docopt(__doc__)
-    cmd2sql.initialize(args)
-    cmd2sql.query_loop()
+    datum.initialize(args)
+    datum.query_loop()
 
 
 if __name__ == "__main__":
