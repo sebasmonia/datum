@@ -14,13 +14,21 @@ _user = None
 _pass = None
 _integrated = False
 
+# The first newline here is useful for spacing later
+_header_message = """
+Special commands are prefixed with ":". For example, use ":exit" or ":quit" to
+finish your session. Use ":help" to list available commands.
+Everything else is sent directly to the server using ODBC when you type "GO" in
+a new line or ";;" at the end of a query.
+"""
 
 def initialize(docopt_args):
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
     global _integrated
     _conn_string = docopt_args["--conn_string"]
     if docopt_args["--conn_string"]:
-        # Nothing else to do here
+        # TODO: use the connection string as-is
+        # but extract server and db name for the prompt
         return
 
     _driver = docopt_args["--driver"]
@@ -34,8 +42,22 @@ def initialize(docopt_args):
     _build_connection_string()
 
 
+def show_connection_banner_and_get_prompt_header():
+    global _server, _database, _dsn, _header_message
+    # If the server name isn't explicit, then use the DSN name. Even then,
+    # something like SQLite might now have server nor DSN, so show "-"
+    print_server = _server or _dsn or "-"
+    print(f'Connected to server {print_server} database {_database}')
+    print(_header_message)
+    return f"{print_server}@{_database}"
+
+
 def get_connection(command_timeout=30):
     global _conn_string, _connection
+
+    if _connection:
+        return _connection
+
     _connection = pyodbc.connect(_conn_string, autocommit=True)
     _connection.add_output_converter(-155, _handle_datetimeoffset)
     _connection.timeout = command_timeout

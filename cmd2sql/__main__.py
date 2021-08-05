@@ -48,8 +48,8 @@ import sys
 
 def main():
     args = docopt(__doc__)
-    print(args)
     cmd2sql.initialize(args)
+    cmd2sql.query_loop()
 
 
 if __name__ == "__main__":
