@@ -1,16 +1,24 @@
 """Datum's query output printer.
 """
-
+from collections import defaultdict
+from datetime import datetime, date
 from pyodbc import ProgrammingError
+import decimal
+import math
+import operator as op
 
-_rows_to_print = None
-_col_display_length = None
+_config = {}
+_chars_to_replace = str.maketrans({"\n": "[NL]",
+                                   "\t": "[TAB]"})
 
 
 def initialize(config):
-    global _rows_to_print, _col_display_length
-    _rows_to_print = config["rows"]
-    _col_display_length = config["truncate"]
+    global _config, _chars_to_replace
+    # As of this writing the printer needs _all_ the config parameters to work
+    # so let's just keep the whole dict referenced
+    _config = config
+    _chars_to_replace = str.maketrans({"\n": config["newline_replacement"],
+                                       "\t": config["tab_replacement"]})
 
 
 def print_cursor(a_cursor):
@@ -32,28 +40,27 @@ def print_cursor(a_cursor):
 
 
 def print_resultset(a_cursor):
-    print(a_cursor)
-    global _rows_to_print
-    if _rows_to_print:
-        odbc_rows = a_cursor.fetchmany(_rows_to_print)
+    global _config
+    rows_to_print = _config["rows_to_print"]
+    if rows_to_print:
+        odbc_rows = a_cursor.fetchmany(rows_to_print)
     else:
         odbc_rows = a_cursor.fetchall()
 
     rowcount = a_cursor.rowcount
     if not odbc_rows:
         return  # no rows returned!
-    column_names = [text_formatter(column[0]) for column in cursor.description]
+    column_names = [text_formatter(column[0]) for column in
+                    a_cursor.description]
     format_str, print_ready = format_rows(column_names, odbc_rows)
     print()  # blank line
-    # Issue #3, printing too slow. Trade off memory for speed when printing
-    # a resultset
     print("\n".join(format_str.format(*row) for row in print_ready),
           flush=True)
     # Try to determine if all rows returned were printed
     # MS SQL Server doesn't report the total rows SELECTed,
     # but for example MySql does.
     printed_rows = len(odbc_rows)
-    if printed_rows < max_rows_print or max_rows_print == 0:
+    if printed_rows < rows_to_print or rows_to_print == 0:
         # We printed everything via :rows 0, or less than the max to print
         # in which case we can deduct there were no more rows
         rowcount = printed_rows
@@ -66,31 +73,35 @@ def print_resultset(a_cursor):
 
 
 def text_formatter(value):
-    global _truncate
+    global _config, _chars_to_replace
+    col_width = _config["column_display_length"]
     value = str(value)
-    value = str.translate(value, chars_to_cleanup)
-    if _truncate and len(value) > _truncate:
-        value = value[:max_column_width-5] + "[...]"
+    value = str.translate(value, _chars_to_replace)
+    if col_width and len(value) > col_width:
+        value = value[:col_width-5] + "[...]"
     return value
 
+
 def format_rows(column_names, raw_rows):
+    global _config
+    null_string = _config["null_string"]
     # lenghts will match columns by position
     column_widths = defaultdict(lambda: 0)
     formatted = []
     for row in raw_rows:
         new_row = []
+        new_len = 0
         for index, value in enumerate(row):
-            new_value = "#unknown#"
+            new_value = "#unknown#"  # this should never be printed...but...
             if value is None:
                 new_len = 6
-                new_value = "[NULL]"
+                new_value = null_string
             if isinstance(value, bool):
                 new_len = 6
                 new_value = value
             elif isinstance(value, datetime):
                 new_len = 26
                 new_value = value.isoformat()
-            # order matters, datetime matches date :)
             elif isinstance(value, date):
                 new_len = 10
                 new_value = value.isoformat()

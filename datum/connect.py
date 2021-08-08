@@ -22,6 +22,7 @@ Everything else is sent directly to the server using ODBC when you type "GO" in
 a new line or ";;" at the end of a query.
 """
 
+
 def initialize(docopt_args):
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
     global _integrated

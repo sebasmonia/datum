@@ -4,6 +4,13 @@ but also paths and configuration.
 import configparser
 import os
 
+_default_config = {"rows_to_print": 25,
+                   "column_display_length": 25,
+                   "null_string": "[NULL]",
+                   "newline_replacement": "[NL]",
+                   "tab_replacement": "[TAB]",
+                   "custom_commands": {}}
+
 
 def resolve_envvar_args(args):
     """For each parameter in args (populated from docotp), replaces the value
@@ -17,6 +24,7 @@ with an env var value when prefixed with 'ENV='."""
 def get_config_dict(commands_arg):
     """Find and open (if present) a configuration file.
 Return default configuration values if the file isn't present."""
+    global _default_config
     config_file_path = os.path.expanduser(commands_arg)
     # happiest path: it is an absolute path or a relative path we can resolve
     if os.path.isfile(config_file_path):
@@ -34,26 +42,34 @@ Return default configuration values if the file isn't present."""
         if os.path.isfile(config_file_path):
             return _read_config(config_file_path)
         else:
-            return {"rows_to_print": 25,
-                    "column_display_length": 25,
-                    "newline": 25,
-                    "custom_commands": {}}
+            return _default_config
 
 
 def _read_config(config_file_path):
+    global _default_config
     config = {}
     config_file = configparser.ConfigParser()
     config_file.read(config_file_path)
-    config["rows_to_print"] = config_file.getint("general",
-                                                 "rows_to_print",
-                                                 fallback=100)
+    config["rows_to_print"] = config_file.getint(
+        "general",
+        "rows_to_print",
+        fallback=_default_config["rows_to_print"])
     config["column_display_length"] = config_file.getint(
         "general",
         "column_display_length",
-        fallback=100)
-    config["newline_replacement"] = config_file.get("general",
-                                                    "newline_replacement",
-                                                    fallback="[\n]")
+        fallback=_default_config["column_display_length"])
+    config["null_string"] = config_file.get(
+        "general",
+        "null_string",
+        fallback=_default_config["null_string"])
+    config["newline_replacement"] = config_file.get(
+        "general",
+        "newline_replacement",
+        fallback=_default_config["newline_replacement"])
+    config["tab_replacement"] = config_file.get(
+        "general",
+        "tab_replacement",
+        fallback=_default_config["tab_replacement"])
     config["custom_commands"] = {}
     if "queries" in config_file:
         for name in config_file["queries"]:

@@ -13,6 +13,7 @@ import traceback
 #                     ":timeout": command_timeout}
 config = None
 
+
 def initialize(args):
     global config
     environment.resolve_envvar_args(args)
