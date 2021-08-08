@@ -34,8 +34,9 @@ Return default configuration values if the file isn't present."""
         if os.path.isfile(config_file_path):
             return _read_config(config_file_path)
         else:
-            return {"rows": 25,
-                    "truncate": 25,
+            return {"rows_to_print": 25,
+                    "column_display_length": 25,
+                    "newline": 25,
                     "custom_commands": {}}
 
 
@@ -43,12 +44,16 @@ def _read_config(config_file_path):
     config = {}
     config_file = configparser.ConfigParser()
     config_file.read(config_file_path)
-    config["rows"] = config_file.getint("config",
-                                        "rows",
-                                        fallback=100)
-    config["truncate"] = config_file.getint("config",
-                                            "truncate",
-                                            fallback=100)
+    config["rows_to_print"] = config_file.getint("general",
+                                                 "rows_to_print",
+                                                 fallback=100)
+    config["column_display_length"] = config_file.getint(
+        "general",
+        "column_display_length",
+        fallback=100)
+    config["newline_replacement"] = config_file.get("general",
+                                                    "newline_replacement",
+                                                    fallback="[\n]")
     config["custom_commands"] = {}
     if "queries" in config_file:
         for name in config_file["queries"]:

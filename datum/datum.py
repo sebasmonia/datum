@@ -2,6 +2,7 @@
 
 from . import connect
 from . import environment
+from . import printer
 import traceback
 
 # builtin_commands = {":help": command_help,
@@ -17,9 +18,11 @@ def initialize(args):
     environment.resolve_envvar_args(args)
     config = environment.get_config_dict(args["--config"])
     connect.initialize(args)
+    printer.initialize(config)
     # we don't _need_ to connect now, but it is a good place to blow up
     # if the parameters we have aren't good
     connect.get_connection()
+
 
 def query_loop():
     prompt_header = connect.show_connection_banner_and_get_prompt_header()
@@ -35,8 +38,7 @@ def query_loop():
                 print("handle parameters here")
                 # params = prompt_parameters(query)
                 cursor.execute(query)
-                for row in cursor:
-                    print(row)
+
                 row_count = cursor.rowcount
             print("\nRows affected:", row_count, flush=True)
         except Exception:
