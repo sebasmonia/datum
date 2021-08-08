@@ -23,7 +23,7 @@ a new line or ";;" at the end of a query.
 """
 
 
-def initialize(docopt_args):
+def initialize_module(docopt_args):
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
     global _integrated
     _conn_string = docopt_args["--conn_string"]

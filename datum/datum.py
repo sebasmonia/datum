@@ -3,13 +3,12 @@
 from . import connect
 from . import environment
 from . import printer
+from . import commands
 
-# builtin_commands = {":help": command_help,
-#                     ":truncate": command_truncate,
-#                     ":rows": command_rows,
-#                     ":file": command_file,
-#                     ":use": command_use,
-#                     ":timeout": command_timeout}
+# The configuration read using environment.get_config_dict and referenced in
+# this variable is, in fact, shared by all the modules. This allows the
+# commands to change config on the fly easily. There some risk of introducing
+# bugs, so let's keep it in mind in all the code...
 config = None
 
 
@@ -17,8 +16,9 @@ def initialize(args):
     global config
     environment.resolve_envvar_args(args)
     config = environment.get_config_dict(args["--config"])
-    connect.initialize(args)
-    printer.initialize(config)
+    connect.initialize_module(args)
+    printer.initialize_module(config)
+    commands.initialize_module(config)
     # we don't _need_ to connect now, but it is a good place to blow up
     # if the parameters we have aren't good
     connect.get_connection()
