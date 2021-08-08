@@ -21,7 +21,7 @@ def initialize(config):
                                        "\t": config["tab_replacement"]})
 
 
-def print_cursor(a_cursor):
+def print_cursor_results(a_cursor):
     try:
         print_resultset(a_cursor)
     except ProgrammingError as e:
