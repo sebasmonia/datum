@@ -32,7 +32,7 @@ def query_loop():
     while query not in (":exit", ":quit"):
         try:
             if query.startswith(":"):
-                print("do command here")
+                commands.handle(query)
             if query:
                 cursor = connect.get_connection().cursor()
                 params = prompt_parameters(query)
