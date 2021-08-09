@@ -64,7 +64,7 @@ def print_resultset(a_cursor):
         # Curse you, MS SQL Driver!
         rowcount = "(unknown)"
     # We tried our best! report the numbers
-    print(f"\nRows printed: {printed_rows}/{rowcount}\n",
+    print("\nRows printed: ", printed_rows, "/", rowcount, sep="",
           flush=True)
 
 

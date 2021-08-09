@@ -41,8 +41,8 @@ def query_loop():
                 cursor = connect.get_connection().cursor()
                 params = prompt_parameters(query)
                 cursor.execute(query, params)
-                printer.print_cursor_results(cursor)
                 row_count = cursor.rowcount
+                printer.print_cursor_results(cursor)
                 print("\nRows affected:", row_count, flush=True)
         except Exception as err:
             print("---ERROR---\n", err, "\n---ERROR---", flush=True)

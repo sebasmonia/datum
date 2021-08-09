@@ -57,18 +57,23 @@ def handle(user_input):
     output_query = ""
     if command_name in _builtins:
         _builtins[command_name](args)
+    elif command_name[1:] in _config["custom_commands"]:
+        output_query = prepare_query(
+            _config["custom_commands"][command_name[1:]], args)
     else:
-        # custom queries
-        pass
+        print("Invalid command. Use :help for a list of available commands.")
+
     return output_query
 
 
 def help(args):
-    global _help_text
+    global _help_text, _config
     print(_help_text)
-    print("show other commands here")
-    # Return value is not used, but pyright won't complain about args being
-    # unusused :)
+    if _config["custom_commands"]:
+        print('Commands declared in the "queries" section of the config:')
+        print(", ".join(":" + k for k in _config["custom_commands"].keys()))
+    # Return value is ignored, but returning "args" gets pyright to shut up
+    # about it not being used :)
     return args
 
 
@@ -165,6 +170,23 @@ def timeout(args):
             pass
     print("Command timeout set to", connection.timeout, "seconds.")
 
+
+def prepare_query(template, args):
+    # An attempt was made, I think this logic is sound, probably not perfect.
+    # For sure it will break/fail on an invalid format string, but then we'll
+    # have other worries!
+    count_total = template.count("{")
+    count_literal = template.count("{{") * 2
+    # The real number of expected positional parameters is "all the {" minus
+    # "all the {{ for literal { output" (notice the * 2 when counting "{{"
+    params_count = count_total - count_literal
+    if len(args) < params_count:
+        print("The custom command expects", params_count ,"parameter(s).")
+        # Abort processing
+        return None
+    # This can throw IndexError under a number of situations, but we'll let it
+    # bubble so it is handled (and printed) on datum.query_loop
+    return template.format(*args)
 
 _builtins = {":help": help,
              ":rows": rows,
