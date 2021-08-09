@@ -15,14 +15,17 @@ _help_text = """
                   see the current value. Use 0 to not truncate.
 
 :null [string]    String to show for "NULL" in the database. Call with no args
-                  to see the current string.
+                  to see the current string. Use "OFF" (no quotes) to show
+                  nothing. Note that this makes empty string and null hard to
+                  differentiate.
 
-:newline [string] String to replace newlines in values. Use "\n" (no quotes) to
-                  keep newlines as-is, it will most likely break the output
-                  table. Call with no argument to display the current value.
+:newline [string] String to replace newlines in values. Use "OFF" (no quotes)
+                  to keep newlines as-is, it will most likely break the display
+                  of output. Call with no arg to display the current value.
 
-:tab [string]     String to replace tab in values. Use "\t" (no quotes) to keep
-                  tab characters. Call with no args to show the current value.
+:tab [string]     String to replace tab in values. Use "OFF" (no quotes) to
+                  keep tab characters. Call with no arguments to show the
+                  current value.
 
 :timeout [number] Seconds for command timeouts - how long to wait for a command
                   to finish running.
@@ -47,7 +50,7 @@ def handle(user_input):
     # built ins dictionary is defined at the bottom of the file
     global _builtins
     # we got here with confirmation that this is a command, so:
-    command_name, *args = user_input.split(" ")
+    command_name, *args = user_input.strip().split(" ")
     # For custom queries, this will return the formatted query. Other commands
     # return empty, no output is printed and we get back to the prompt
     output_query = ""
@@ -105,7 +108,9 @@ def chars(args):
 def null(args):
     global _config
 
-    if args:
+    if args and args[0] == "OFF":
+        _config["null_string"] = ""
+    elif args and args[0] != "OFF":
         _config["null_string"] = args[0]
 
     print('Using the string "', _config["null_string"],
@@ -115,21 +120,32 @@ def null(args):
 def newline(args):
     global _config
 
-    if args:
+    if args and args[0] == "OFF":
+        _config["newline_replacement"] = "\n"
+    elif args and args[0] != "OFF":
         _config["newline_replacement"] = args[0]
 
-    print('Using the string "', _config["newline_replacement"],
-          '" to print literal \\n (new lines) in values.', sep='')
+    if _config["newline_replacement"] == "\n":
+        print('Printing newlines with no conversion (might break results',
+              'display).')
+    else:
+        print('Using the string "', _config["newline_replacement"],
+              '" to print literal new lines in values.', sep='')
 
 
 def tab(args):
     global _config
 
-    if args:
+    if args and args[0] == "OFF":
+        _config["tab_replacement"] = "\t"
+    elif args and args[0] != "OFF":
         _config["tab_replacement"] = args[0]
 
-    print('Using the string "', _config["tab_replacement"],
-          '" to print literal \\t (tabs) in values.', sep='')
+    if _config["tab_replacement"] == "\n":
+        print('Printing tab with no conversion (might break results display).')
+    else:
+        print('Using the string "', _config["tab_replacement"],
+              '" to print literal tabs in values.', sep='')
 
 
 def timeout(args):

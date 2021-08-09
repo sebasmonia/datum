@@ -32,14 +32,18 @@ def query_loop():
     while query not in (":exit", ":quit"):
         try:
             if query.startswith(":"):
-                commands.handle(query)
+                # a command might return a formatted query, or nothing
+                query = commands.handle(query)
+            # see the comment in the if block above: this might be the user's
+            # input if it wasn't a command, OR empty if it was handled and
+            # there's nothing else to do, OR a formatted query
             if query:
                 cursor = connect.get_connection().cursor()
                 params = prompt_parameters(query)
                 cursor.execute(query, params)
                 printer.print_cursor_results(cursor)
                 row_count = cursor.rowcount
-            print("\nRows affected:", row_count, flush=True)
+                print("\nRows affected:", row_count, flush=True)
         except Exception as err:
             print("---ERROR---\n", err, "\n---ERROR---", flush=True)
         print(flush=True)  # blank line

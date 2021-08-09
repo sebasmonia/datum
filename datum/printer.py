@@ -8,17 +8,13 @@ import math
 import operator as op
 
 _config = {}
-_chars_to_replace = str.maketrans({"\n": "[NL]",
-                                   "\t": "[TAB]"})
 
 
 def initialize_module(config):
-    global _config, _chars_to_replace
+    global _config
     # As of this writing the printer needs _all_ the config parameters to work
     # so let's just keep the whole dict referenced
     _config = config
-    _chars_to_replace = str.maketrans({"\n": config["newline_replacement"],
-                                       "\t": config["tab_replacement"]})
 
 
 def print_cursor_results(a_cursor):
@@ -73,10 +69,12 @@ def print_resultset(a_cursor):
 
 
 def text_formatter(value):
-    global _config, _chars_to_replace
+    global _config
+    chars_to_replace = str.maketrans({"\n": _config["newline_replacement"],
+                                      "\t": _config["tab_replacement"]})
     col_width = _config["column_display_length"]
     value = str(value)
-    value = str.translate(value, _chars_to_replace)
+    value = str.translate(value, chars_to_replace)
     if col_width and len(value) > col_width:
         value = value[:col_width-5] + "[...]"
     return value
