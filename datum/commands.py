@@ -7,7 +7,8 @@ _config = {}
 
 _help_text = """
 --Available commands--
-:help prints the command list
+:help             Prints the command list.
+
 :rows [number]    How many rows to print out of the resultset. Call with no
                   number to see the current value. Use 0 for "all rows".
 
@@ -126,8 +127,8 @@ def newline(args):
         _config["newline_replacement"] = args[0]
 
     if _config["newline_replacement"] == "\n":
-        print('Printing newlines with no conversion (might break results',
-              'display).')
+        print('Printing newlines with no conversion (might break the display',
+              'of query output.')
     else:
         print('Using the string "', _config["newline_replacement"],
               '" to print literal new lines in values.', sep='')
@@ -141,8 +142,9 @@ def tab(args):
     elif args and args[0] != "OFF":
         _config["tab_replacement"] = args[0]
 
-    if _config["tab_replacement"] == "\n":
-        print('Printing tab with no conversion (might break results display).')
+    if _config["tab_replacement"] == "\t":
+        print('Printing tabs with no conversion (might break the display of',
+              'query output).')
     else:
         print('Using the string "', _config["tab_replacement"],
               '" to print literal tabs in values.', sep='')
