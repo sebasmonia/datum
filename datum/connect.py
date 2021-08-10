@@ -48,9 +48,11 @@ def show_connection_banner_and_get_prompt_header():
     # If the server name isn't explicit, then use the DSN name. Even then,
     # something like SQLite might now have server nor DSN, so show "-"
     print_server = _server or _dsn or "-"
-    print(f'Connected to server {print_server} database {_database}')
+    print('Connected to server', print_server, end=" ")
+    if _database:
+        print('database', _database)
     print(_header_message)
-    return f"{print_server}@{_database}"
+    return "print_server" + ("@" + _database if _database else "")
 
 
 def get_connection(command_timeout=30):
