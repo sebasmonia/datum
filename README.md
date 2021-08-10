@@ -6,22 +6,42 @@ An attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sq
 
 <!--ts-->
 
+   * [Installation](#installation)
    * [Usage](#usage)
+   * [Configuration file](#configuration-file)
    * [Commands](#comands)
-   * [Emacs usage tips](#emacs-usage-tips)
+   * [Custom commands](#custom-comands)
+   * [Emacs SQLi mode setup](#emacs-sqli-mode-setup)
 
 <!--te-->
 
+## Installation 
+
+You can install `datum` using `pip`:
+
+```
+pip install git+https://github.com/sebasmonia/datum.git
+```
+
+Remember that you should add `--upgrade` in case the package is updated after you installed it.
 
 ## Usage
 
 **TBD**  
 
+## Configuration file
+
+**TBD** 
+
 ## Commands
 
 **TBD**  
 
-## Emacs usage tips
+## Custom commands
+
+**TBD**  
+
+## Emacs SQLi mode setup
 
 **TBD**  
 

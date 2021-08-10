@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'sql)
-(require 'seq)
 
 (defcustom sql-datum-program "datum"
   "Command to start Datum.
@@ -41,13 +40,12 @@ See https://github.com/sebasmonia/datum for instructions on how to install."
 (defcustom sql-datum-login-params nil
   "Parameters that will prompted to connect to a DB using Datum. If you use the most common
 (server database user pass) values, you can use this variable. If you need support for DSN,
-or a pre-built connection string, leave empty."
+or a pre-built connection string, leave empty and rely on `sql-datum-options' instead."
   :type 'sql-login-params
   :group 'SQL)
 
-(defcustom sql-datum-options ""
-  "List of additional options for datum. If you use a single config file for all your DBs,
-and it isn't stored in the default location, you can set it here with \"--config /path/to/file\" ."
+(defcustom sql-datum-options nil
+  "List of datum options that aren't part of the sql.el standard parameters: --driver, --dsn, --config."
   :type '(repeat string)
   :group 'SQL)
 
@@ -55,16 +53,15 @@ and it isn't stored in the default location, you can set it here with \"--config
   "Create a comint buffer and connect to database using Datum.
 PRODUCT is the sql product (datum).  OPTIONS are additional paramaters not defined in the customization."
   ;; Support for "standard" parameter types that might be let-bound
-  (let ((parameters (append
-                       (list options)
-                       (unless (string-empty-p sql-server)
-                         (list "--server" sql-server))
-                       (unless (string-empty-p sql-database)
-                         (list "--database" sql-database))
-                       (unless (string-empty-p sql-user)
-                         (list "--user" sql-user))
-                       (unless (string-empty-p sql-password)
-                         (list "--pass" sql-password)))))
+  (let ((parameters (append options
+                            (unless (string-empty-p sql-server)
+                              (list "--server" sql-server))
+                            (unless (string-empty-p sql-database)
+                              (list "--database" sql-database))
+                            (unless (string-empty-p sql-user)
+                              (list "--user" sql-user))
+                            (unless (string-empty-p sql-password)
+                              (list "--pass" sql-password)))))
     (unless parameters
       ;; if this list is empty, prompt for datum parameters
       (setf parameters (sql-datum--prompt-connection)))
@@ -122,19 +119,22 @@ The buffer with name BUFFER will be used or created."
 ;; (load-file "/home/hoagie/github/datum/sql-datum.el")
 ;; (with-eval-after-load 'sql
 ;;   (require 'sql-datum)
-;;   (setq sql-connection-alist
-;;         '(("SQL SERVER EXAMPLE"
-;;            (sql-product 'datum)
-;;            (sql-datum-options "--driver {sql driver}")
-;;            (sql-server "server")
-;;            (sql-user "username")
-;;            (sql-password "pass")
-;;            (sql-database "db-name"))
-;;           ("MySQL EXAMPLE"
-;;            (sql-product 'datum)
-;;            (sql-datum-options "--driver=MySQL")
-;;            (sql-user "le-user")
-;;            (sql-password "pass")
-;;            (sql-server "serverrrr")
-;;            (sql-database "db-name"))
-;;           )))
+  (setq sql-connection-alist
+        '(("SQL SERVER EXAMPLE"
+           (sql-product 'datum)
+           (sql-datum-options "--driver {sql driver}")
+           (sql-server "server")
+           (sql-user "username")
+           (sql-password "pass")
+           (sql-database "db-name"))
+          ("Chinook"
+           (sql-product 'datum)
+           (sql-datum-options '("--driver" "SQLITE3" "--config" "/var/home/hoagie/github/datum/datum/config.ini"))
+           (sql-database "/var/home/hoagie/github/datum/chinook.db"))
+          ("MySQL EXAMPLE"
+           (sql-product 'datum)
+           (sql-datum-options "--driver=MySQL")
+           (sql-user "le-user")
+           (sql-password "pass")
+           (sql-server "serverrrr")
+           (sql-database "db-name"))))
