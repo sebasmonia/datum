@@ -4,8 +4,8 @@ but also paths and configuration.
 import configparser
 import os
 
-_default_config = {"rows_to_print": 25,
-                   "column_display_length": 25,
+_default_config = {"rows_to_print": 50,
+                   "column_display_length": 100,
                    "null_string": "[NULL]",
                    "newline_replacement": "[NL]",
                    "tab_replacement": "[TAB]",
