@@ -136,7 +136,7 @@ The buffer with name BUFFER will be used or created."
            (sql-datum-options '("--dsn" "ChinookNamed" "--config" "/var/home/hoagie/github/datum/datum/config.ini")))
           ("MySQL EXAMPLE"
            (sql-product 'datum)
-           (sql-datum-options "--driver=MySQL")
+           (sql-datum-options '("--driver=MySQL"))
            (sql-user "le-user")
            (sql-password "pass")
            (sql-server "serverrrr")

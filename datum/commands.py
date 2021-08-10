@@ -60,6 +60,7 @@ def handle(user_input):
     elif command_name[1:] in _config["custom_commands"]:
         output_query = prepare_query(
             _config["custom_commands"][command_name[1:]], args)
+        print("Command query:\n", output_query)
     else:
         print("Invalid command. Use :help for a list of available commands.")
 
