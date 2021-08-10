@@ -74,4 +74,11 @@ def _read_config(config_file_path):
     if "queries" in config_file:
         for name in config_file["queries"]:
             config["custom_commands"][name] = config_file["queries"][name]
+    # reading empty string from the config files ==> same as using the command
+    # with the OFF option. So let's take care of that.
+    if config["newline_replacement"] == "":
+        config["newline_replacement"] = "\n"
+    if config["tab_replacement"] == "":
+        config["tab_replacement"] = "\t"
+
     return config
