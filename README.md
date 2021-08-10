@@ -41,14 +41,14 @@ datum (--driver=<odbc_driver> | --dsn=<dsn>)
 ```
 
 You can use `datum --help` in your terminal to see more details about each parameter, although they are pretty self-explanatory.  
-If you go with the first version, you are meant to specify a full connection string that is used as-is.  
+If you go with the first version, you are meant to specify a full connection string.  
 The alternative is to provide either a DSN, or an ODBC driver to use. A DSN might contain all the information needed, or skip some parameters (for example, the auth portion) so you can still add more values to the mix.  
-You could interpolate environment variables in your shell of choice, but a simple alternative is to start a value with `ENV=`. For example `--pass=ENV=DB_SECRET` would get the value for the password from $DB_SECRET / %DB_SECRET%.
+You can interpolate environment variables in your shell of choice, a (hopefully) simpler alternative is to start a value with `ENV=`. For example `--pass=ENV=DB_SECRET` would get the value for the password from $DB_SECRET / %DB_SECRET%.
 
 ## Configuration file
 
 There's an option to provide an INI file to setup the start up value of Datum's config and optionally provide custom "commands" (more on this in the relevant section).  
-The value for `--config` is accessed as-is (in case you specify a filename in the current directory or a full path), and if not found then it is assumed to be a file in the directory `$XDG_CONFIG_HOME/datum` or `$HOME/.config/datum` (or `%USERPROFILE%\.config\datum` on Windows). This is convenient in case you want to define custom queries for example per DB-engine using files named `mssql.ini`, `mariadb.ini`, `sqlite.ini`, etc. Then you can just dump all the files in the Datum directory and use e.g. `--config=sqlite.ini`  when you connect to a SQLite DB. You could also store custom queries per-database in separate files, and so on.  
+The value for `--config` defaults to `config.ini`. It is accessed as-is (in case you specify a filename in the current directory or a full path), and if not found then it is assumed to be a file in the directory `$XDG_CONFIG_HOME/datum` or `$HOME/.config/datum` (or `%USERPROFILE%\.config\datum` on Windows). This is convenient in case you want to define custom queries for example per DB-engine using files named `mssql.ini`, `mariadb.ini`, `sqlite.ini`, etc. Then you can just drop all the files in the Datum `.config` directory and use e.g. `--config=sqlite.ini` when you connect to a SQLite DB. You could also store custom queries per-database in separate files, and so on.  
 &nbsp;  
 The repository for Datum includes a throughly documented sample [config.ini](https://raw.githubusercontent.com/sebasmonia/datum/main/config.ini) file. Note that the file is completely optional, and all configuration can be modified at runtime.
 

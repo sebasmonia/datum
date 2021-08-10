@@ -106,8 +106,8 @@ The buffer with name BUFFER will be used or created."
 
 (sql-add-product 'datum "Datum - ODBC DB Client"
                  :free-software t
-                 :prompt-regexp "^[0-9]*>"
-                 :prompt-cont-regexp "^[0-9]*>"
+                 :prompt-regexp "^.*>"
+                 :prompt-cont-regexp "^.*>"
                  :sqli-comint-func 'sql-comint-datum
                  :sqli-login 'sql-datum-login-params
                  :sqli-program 'sql-datum-program

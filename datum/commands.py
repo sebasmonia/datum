@@ -2,6 +2,7 @@
 This module deals with built-ins and processing of custom queries.
 """
 from . import connect
+from string import Formatter as _Formatter
 
 _config = {}
 
@@ -59,7 +60,7 @@ def handle(user_input):
         _builtins[command_name](args)
     elif command_name[1:] in _config["custom_commands"]:
         output_query = prepare_query(
-            _config["custom_commands"][command_name[1:]], args)
+            _config["custom_commands"][command_name[1:]])
         print("Command query:\n", output_query)
     else:
         print("Invalid command. Use :help for a list of available commands.")
@@ -172,22 +173,26 @@ def timeout(args):
     print("Command timeout set to", connection.timeout, "seconds.")
 
 
-def prepare_query(template, args):
-    # An attempt was made, I think this logic is sound, probably not perfect.
-    # For sure it will break/fail on an invalid format string, but then we'll
-    # have other worries!
-    count_total = template.count("{")
-    count_literal = template.count("{{") * 2
-    # The real number of expected positional parameters is "all the {" minus
-    # "all the {{ for literal { output" (notice the * 2 when counting "{{"
-    params_count = count_total - count_literal
-    if len(args) < params_count:
-        print("The custom command expects", params_count ,"parameter(s).")
-        # Abort processing
-        return None
-    # This can throw IndexError under a number of situations, but we'll let it
+def prepare_query(template):
+    f = _Formatter()
+    # A set built out of the replacement keys present after the Formatter
+    # parses the input
+    kwargs_keys = {item[1] for item in f.parse(template) if item[1]}
+    kwargs = {}
+    for key in kwargs_keys:
+        value = input(f"{key}>")
+        kwargs[key] = value
+    if kwargs:
+        print()  # add an empty line if we read parameters
+    # This could throw an error under a number of situations, but we'll let it
     # bubble so it is handled (and printed) on datum.query_loop
-    return template.format(*args)
+    return template.format(**kwargs)
+
+
+
+
+
+
 
 _builtins = {":help": help,
              ":rows": rows,
