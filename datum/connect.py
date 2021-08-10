@@ -52,7 +52,7 @@ def show_connection_banner_and_get_prompt_header():
     if _database:
         print('database', _database)
     print(_header_message)
-    return "print_server" + ("@" + _database if _database else "")
+    return print_server + ("@" + _database if _database else "")
 
 
 def get_connection(command_timeout=30):
