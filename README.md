@@ -18,8 +18,8 @@ Datum was built from scratch keeping in mind some of the limitations in sqlcmdli
    * [Installation](#installation)
    * [Connecting to a DB](#connecting-to-a-db)
    * [Configuration file](#configuration-file)
-   * [Commands](#comands)
-   * [Custom commands](#custom-comands)
+   * [Commands](#commands)
+   * [Custom commands](#custom-commands)
    * [Emacs SQLi mode setup](#emacs-sqli-mode-setup)
 
 <!--te-->
@@ -32,7 +32,7 @@ You can install `datum` from this repository using `pip`:
 pip install git+https://github.com/sebasmonia/datum.git
 ```
 
-Remember that you should add `--upgrade` to check for package updates after you installed it.
+Remember that you should add `--upgrade` to check for package updates after you installed it.  
 All examples in this manual use the SQLite version of the [Chinook sample database](https://github.com/jimfrenette/chinook-database): _"The Chinook data model represents a digital media store, including tables for artists, albums, media tracks, invoices and customers"_.
 
 ## Connecting to a DB
@@ -116,6 +116,8 @@ Rows affected: 0
 >
 ```
 The last example shows that we can use `?` to [parametrize queries](https://github.com/mkleehammer/pyodbc/wiki/Getting-started#parameters). You will be asked for input for as many parameters as `?` characters are in the query. These are properly escaped by pyodbc, so they are convenient when working with strings.  
+&nbsp;  
+The "Rows printed" message shows how many rows were displayed from the total returned by the query, as you can see above some drivers don't report the latter. Similarly "Rows affected" is reported by the drivers, it tends to be more accurate for non-query operations.  
 
 ## Configuration file
 
@@ -132,12 +134,12 @@ The repository for Datum includes a throughly documented sample [config.ini](htt
 
 
 * `:help` - Prints the command list.
-* `:rows [number]` - How many rows to print out of the resultset. Call with no number to see the current value. Use 0 for "all rows". Default: 50 rows
-* `:chars [number]` - How many chars per column to print. Call with no number to see the current value. Use 0 to not truncate. Default: 100 chars
-* `:null [string]` - String to show for "NULL" in the database. Call with no args to see the current string. Use "OFF" (no quotes) to show nothing. Note that this makes empty string and null hard to differentiate. Default: "[NULL]"
-* `:newline [string]` - String to replace newlines in values. Use ":newline OFF" (no quotes) to keep newlines as-is, it will most likely break the display of output. Call with no arg to display the current value. Default: "[NL]"
-* `:tab [string]` - String to replace tab in values. Use ":tab OFF" (no quotes) to keep tab characters. Call with no arguments to show the current value. Default: "[TAB]"
-* `:timeout [number]` - Seconds for command timeout - how long to wait for a command to finish running. This is set in the ODBC connection, use 0 to "wait forever". Default: 30 seconds
+* `:rows [number]` - How many rows to print out of the resultset. Call with no number to see the current value. Use 0 for "all rows". If your query will return thousands of rows, printing will block the terminal for a few seconds. Default: 50 rows
+* `:chars [number]` - How many chars per column to print. Call with no number to see the current value. Use 0 to not truncate. Depending on the settings of your terminal, printing long values can break the output tables. Default: 100 chars
+* `:null [string]` - String to show for "NULL" in the database. Call with no args to see the current string. Use "OFF" (no quotes) to show nothing. Note that this makes empty string and null hard (impossible?) to differentiate. Default: "[NULL]"
+* `:newline [string]` - String to replace newlines in values. Use ":newline OFF" (no quotes) to keep newlines as-is, it will most likely break the display of output. Call with no arg to show the current replacement value. Default: "[NL]"
+* `:tab [string]` - String to replace tab in values. Use ":tab OFF" (no quotes) to keep tab characters. Call with no arguments to show the current string. Default: "[TAB]"
+* `:timeout [number]` - Seconds for command timeout - how long to wait for a command to finish running. This is set in the ODBC connection, use 0 to wait "forever". Default: 30 seconds
 
 ## Custom commands
 
@@ -176,7 +178,7 @@ Rows affected: 0
 ChinookDSN
 >
 ```
-After the query template runs through format(), it is executed as if was typed, so we can combine both type of parameters, let's add one more query to our INI file:
+After the query template runs through format(), it is executed as if it was typed by the user, so we can combine both type of parameters, let's add one more query to our INI file:
 ```
 [queries]
 limit=SELECT * FROM {table} LIMIT {how_many};
@@ -240,6 +242,6 @@ With the setup above you can use `M-x sql-connect` to select to connect to "Chin
 Things to note:  
 * The parameters `sql-server`, `sql-database`, `sql-user` and `sql-password` are mapped to Datum's --server, --database, --user and --password.
 * If any of them is not used, it has to be set to an empty string to make sure they are ignored.
-* Use `sql-datum-options` to provide a list of parameters not included in the standard 4 mentioned above: --dsn, --driver, --integrated, --config.
-* There's a command, `sql-datum`, that will prompt interactively for each parameter, just like `sql-ms`, `sql-oracle`, etc.
+* Use `sql-datum-options` to provide any of parameters not included in the standard 4 mentioned above: --dsn, --driver, --integrated, --config.
+* There's an interactive command, `sql-datum`, that will prompt for each parameter, just like `sql-ms`, `sql-oracle`, etc.
 
