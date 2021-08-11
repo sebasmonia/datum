@@ -38,9 +38,10 @@ See https://github.com/sebasmonia/datum for instructions on how to install."
   :group 'SQL)
 
 (defcustom sql-datum-login-params nil
-  "Parameters that will prompted to connect to a DB using Datum. If you use the most common
-(server database user pass) values, you can use this variable. If you need support for DSN,
-or a pre-built connection string, leave empty and rely on `sql-datum-options' instead."
+  "Parameters that will prompted to connect to a DB using Datum.
+If you use the most common (server database user pass) values, you can use this
+variable.  If you need support for DSN, or a pre-built connection string, leave
+empty and rely on `sql-datum-options' instead."
   :type 'sql-login-params
   :group 'SQL)
 
@@ -51,7 +52,8 @@ or a pre-built connection string, leave empty and rely on `sql-datum-options' in
 
 (defun sql-comint-datum (product options &optional buf-name)
   "Create a comint buffer and connect to database using Datum.
-PRODUCT is the sql product (datum).  OPTIONS are additional paramaters not defined in the customization."
+PRODUCT is the sql product (datum).  OPTIONS are additional paramaters not
+defined in the customization.  BUF-NAME is the name for the `comint' buffer."
   ;; Support for "standard" parameter types that might be let-bound
   (let ((parameters (append options
                             (unless (string-empty-p sql-server)
@@ -91,7 +93,7 @@ This function will \"smartly\" ask for parameters."
      ;; if user and pass are empty ask about integrated security, but
      ;; it is valid that the user says no to all (SQLite)
      (when (and (string-empty-p user) (string-empty-p pass))
-       (when (y-or-n-p "No user nor password provided. Use Integrated security? ")
+       (when (y-or-n-p "No user nor password provided.  Use Integrated security? ")
          (setf parameters (append parameters (list "--integrated"))))))
      (when (y-or-n-p "Specify a config file? ")
        (setf parameters (append parameters (list "--config"
@@ -114,30 +116,4 @@ The buffer with name BUFFER will be used or created."
                  :sqli-options 'sql-datum-options)
 
 (provide 'sql-datum)
-
-
-;; (load-file "/home/hoagie/github/datum/sql-datum.el")
-;; (with-eval-after-load 'sql
-;;   (require 'sql-datum)
-  (setq sql-connection-alist
-        '(("SQL SERVER EXAMPLE"
-           (sql-product 'datum)
-           (sql-datum-options "--driver {sql driver}")
-           (sql-server "server")
-           (sql-user "username")
-           (sql-password "pass")
-           (sql-database "db-name"))
-          ("Chinook"
-           (sql-product 'datum)
-           (sql-datum-options '("--driver" "SQLITE3" ))
-           (sql-database "/var/home/hoagie/github/datum/chinook.db"))
-          ("ChinookDSN"
-           (sql-product 'datum)
-           (sql-datum-options '("--dsn" "ChinookNamed")))
-          ("MySQL EXAMPLE"
-           (sql-product 'datum)
-           (sql-datum-options '("--driver=MySQL"))
-           (sql-user "le-user")
-           (sql-password "pass")
-           (sql-server "serverrrr")
-           (sql-database "db-name"))))
+;;; sql-datum.el ends here

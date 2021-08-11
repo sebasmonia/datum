@@ -3,7 +3,7 @@
 A command line tool to query databases via ODBC.  
 It has the following goals:  
 
-* Keep dependencies to a minimum (only pyodbc so far)
+* Keep dependencies to a minimum (only docopt and pyodbc so far)
 * Easy to install and use, but configurable
 * Support as many database engines as possible
 * Play nicely with Emacs' SQLi mode  
@@ -33,6 +33,7 @@ pip install git+https://github.com/sebasmonia/datum.git
 ```
 
 Remember that you should add `--upgrade` to check for package updates after you installed it.
+All examples in this manual use the SQLite version of the [Chinook sample database](https://github.com/jimfrenette/chinook-database): _"The Chinook data model represents a digital media store, including tables for artists, albums, media tracks, invoices and customers"_.
 
 ## Connecting to a DB
 
@@ -55,33 +56,73 @@ The alternative is to provide either a DSN, or an ODBC driver to use. A DSN migh
 You can interpolate environment variables in your shell of choice, a (hopefully) simpler alternative is to start a value with `ENV=`. For example `--pass=ENV=DB_SECRET` would get the value for the password from $DB_SECRET / %DB_SECRET%.
 
 Once connected, you are greeted with a messsage and a `>` prompt to type your queries. Special commands start with ":", use `:help` to get online help (or keep reading this manual).  
-Use "GO"/"go" in a new line to send the query to the database. Alternatively, you can end your query with `;;`:
+Sample usage, connecting to the SQLite version of Chinook and querying:
 
 ```
-serverORdsn_name@database_name
->SELECT * FROM persons
+[user@host]$ datum --driver SQLITE3 --database /path/to/datase/chinook.db
+Connected to server - database /path/to/datase/chinook.db
+
+Special commands are prefixed with ":". For example, use ":exit" or ":quit" to
+finish your session. Use ":help" to list available commands.
+Everything else is sent directly to the server using ODBC when you type "GO" in
+a new line or ";;" at the end of a query.
+
+-@/path/to/datase/chinook.db
+>:rows 3  
+Printing 3 rows of each resulset.
+
+-@/path/to/datase/chinook.db
+>select * from artist  
 >go
 
-# output here #
+ArtistId|Name     
+--------|---------
+       1|AC/DC    
+       2|Accept   
+       3|Aerosmith
 
->SELECT * FROM persons WHERE age > 100;;
+Rows printed: 3/0
 
-# output here #
+Rows affected: 0
 
->select * from persons where age > ?;;
-1>50
+-@/path/to/datase/chinook.db
+>select * from artist where name like 'b%';; 
 
-# output here #
+ArtistId|Name               
+--------|-------------------
+       9|BackBeat           
+      10|Billy Cobham       
+      11|Black Label Society
 
+Rows printed: 3/0
+
+Rows affected: 0
+
+-@/path/to/datase/chinook.db
+>select * from artist where artistid > ?;;
+1>25
+
+ArtistId|Name         
+--------|-------------
+      26|Azymuth      
+      27|Gilberto Gil 
+      28|João Gilberto
+
+Rows printed: 3/0
+
+Rows affected: 0
+
+-@/path/to/datase/chinook.db
+>
 ```
-The last example (on top of being more realistic with the use of uppercase in quick queries...) shows that we can use `?` to [parametrize queries](https://github.com/mkleehammer/pyodbc/wiki/Getting-started#parameters). You will be asked for as many parameters as `?` characters are in the query, and these are properly escaped.
-
+The last example shows that we can use `?` to [parametrize queries](https://github.com/mkleehammer/pyodbc/wiki/Getting-started#parameters). You will be asked for input for as many parameters as `?` characters are in the query. These are properly escaped by pyodbc, so they are convenient when working with strings.  
 
 ## Configuration file
 
 There's an option to provide an INI file to setup the start up value of Datum's config and setup "custom commands" (more on this in the relevant section).  
 If `--config` is not provided, Datum will look for a file named `config.ini` in the directory `$XDG_CONFIG_HOME/datum` or `$HOME/.config/datum` (or `%USERPROFILE%\.config\datum` on Windows).  
-When provided, the value is assumed to be a file in the current directory or a full path, and if not found then the config directory is searched.  
+&nbsp;  
+When `--config` is supplied, the value is assumed to be a file in the current directory or a full path, and if not found then the config directory is searched.  
 This is convenient in case you want to define custom queries for example per DB-engine using files named `mssql.ini`, `mariadb.ini`, `sqlite.ini`, etc.; you can drop all the files in the Datum `.config` directory and use e.g. `--config=sqlite.ini` when you connect to a SQLite DB.  
 You could also store custom queries per-database in separate files, or keep config files in different repositories, and so on.  
 &nbsp;  
@@ -105,35 +146,100 @@ You can see more examples in the [config.ini](https://github.com/sebasmonia/datu
 
 ```
 [queries]
-top=SELECT TOP {how_many} * FROM {table}
-limit=SELECT * FROM {table} WHERE ItemId = ? LIMIT {how_many}
+limit=SELECT * FROM {table} LIMIT {how_many};
 ```
-These are MSSQL/MySQL queries to limit the amount of items returned. You cannot use `?` parameters for the TOP #/LIMIT # values, but you can replace them in the query using the format syntax:
-
+We'll run these queries against the Chinook DB. You can't use `?` to parametrize LIMIT, but you can with a {placeholder}. You can even parametrize the target table:
 ```
->:top
-how_many>15
-table>persons
-
-Command query:
- SELECT TOP 15 * FROM persons 
-
-# shows first 15 rows of persons #
-
+ChinookDSN
 >:limit
-
-table>persons
-how_many>25
+table>album
+how_many>8
 
 Command query:
- SELECT * FROM persons WHERE ItemId = ? LIMIT 25
-1>99
+ SELECT * FROM album LIMIT 8;
 
-# shows up to 25 rows of personas where ItemId = 99 #
+AlbumId|Title                                |ArtistId
+-------|-------------------------------------|--------
+      1|For Those About To Rock We Salute You|       1
+      2|Balls to the Wall                    |       2
+      3|Restless and Wild                    |       2
+      4|Let There Be Rock                    |       1
+      5|Big Ones                             |       3
+      6|Jagged Little Pill                   |       4
+      7|Facelift                             |       5
+      8|Warner 25 Anos                       |       6
+
+Rows printed: 8/8
+
+Rows affected: 0
+
+ChinookDSN
+>
 ```
+After the query template runs through format(), it is executed as if was typed, so we can combine both type of parameters, let's add one more query to our INI file:
+```
+[queries]
+limit=SELECT * FROM {table} LIMIT {how_many};
+mixed=SELECT {field}, * FROM {table} WHERE {field} = ?
+```
+And then:
+```
+ChinookDSN
+>:mixed
+field>artistid
+table>album
 
-In the first example, we replaced the number of items and table name in the query. In the second one, on top of that we also provided an ODBC parameter.
+Command query:
+ SELECT artistid, * FROM album WHERE artistid = ?
+1>2
+
+ArtistId|AlbumId|Title            |ArtistId
+--------|-------|-----------------|--------
+       2|      2|Balls to the Wall|       2
+       2|      3|Restless and Wild|       2
+
+Rows printed: 2/2
+
+Rows affected: 0
+
+ChinookDSN
+>
+```
 
 ## Emacs SQLi mode setup
 
-**TBD**  
+The previous version of Datum, sqlcmdline, was created as a drop-in replacement of existing MS SQL Server tools. To set it up in Emacs, it was enough to change `sql-ms` to run a different executable, and for other engines we could re-use most of the existing config.
+
+Datum was created with the intent of providing an easier to use CLI, so the parameters have more natural names (`--integrated` vs `-E`). But as much as possible, we still want to take advantage of existing Emacs facilities.
+
+In this repository there's a small package, [sql-datum](https://github.com/sebasmonia/datum/blob/main/sql-datum.el). Drop it somewhere in your load-path, `(require 'sql-datum)` and then you only need to add connections to `sql-connection-alist`.
+Example of a use-package based setup (the one I used to test!):
+
+```elisp
+(use-package sql-datum :load-path "/path/to/sql-datum/inyour/localsetup"
+  :after sql
+  :config
+  (add-to-list 'sql-connection-alist
+               '("Chinook"
+                 (sql-product 'datum)
+                 (sql-server "")
+                 (sql-user "")
+                 (sql-password "")
+                 (sql-datum-options '("--driver" "SQLITE3" ))
+                 (sql-database "/path/to/datase/chinook.db")))
+  (add-to-list 'sql-connection-alist
+               '("ChinookDSN"
+                 (sql-product 'datum)
+                 (sql-server "")
+                 (sql-user "")
+                 (sql-password "")
+                 (sql-datum-options '("--dsn" "ChinookNamed")))))
+```
+With the setup above you can use `M-x sql-connect` to select to connect to "Chinook" and "ChinookDSN".
+
+Things to note:  
+* The parameters `sql-server`, `sql-database`, `sql-user` and `sql-password` are mapped to Datum's --server, --database, --user and --password.
+* If any of them is not used, it has to be set to an empty string to make sure they are ignored.
+* Use `sql-datum-options` to provide a list of parameters not included in the standard 4 mentioned above: --dsn, --driver, --integrated, --config.
+* There's a command, `sql-datum`, that will prompt interactively for each parameter, just like `sql-ms`, `sql-oracle`, etc.
+

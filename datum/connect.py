@@ -29,8 +29,19 @@ def initialize_module(docopt_args, config):
     global _integrated, _timeout
     _conn_string = docopt_args["--conn_string"]
     if docopt_args["--conn_string"]:
-        # TODO: use the connection string as-is
-        # but extract server and db name for the prompt
+        # We will use the connection string as-is
+        # but attempt to extract server/dsn and db name for the prompt
+        components = _conn_string.split(";")
+        for piece in components:
+            if 'dsn' in piece:
+                _, value = piece.split("=")
+                _dsn = value
+            if 'server' in piece:
+                _, value = piece.split("=")
+                _server = value
+            if 'database' in piece:
+                _, value = piece.split("=")
+                _database = value
         return
 
     _driver = docopt_args["--driver"]
