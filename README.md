@@ -5,7 +5,7 @@ It has the following goals:
 * Keep dependencies to a minimum (only pyodbc so far)
 * Easy to install and use, but configurable
 * Support as many database engines as possible
-* Play nicely with Emacs' SQLi mode
+* Play nicely with Emacs' SQLi mode  
 It is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/). That tool was born out of necessity since [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility) didn't quite work with SQLi. Over time I added support for other DB engines but it was never intended for full compatiblity.  
 Datum was built from scratch keeping in mind some of the limitations in sqlcmdline, but also trying very hard to avoid the second system effect :)  
 &nbsp;  
