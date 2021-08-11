@@ -53,9 +53,9 @@ def main():
 
 
 if __name__ == "__main__":
-    # try:
+    try:
         main()
         # on unhandled exception the exit code will be non-zero
         sys.exit(0)
-    # except Exception as e:
-    #     print("Error: ", e, "\n")
+    except Exception as e:
+        print("Error: ", e, "\n")

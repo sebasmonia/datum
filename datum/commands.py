@@ -189,11 +189,6 @@ def prepare_query(template):
     return template.format(**kwargs)
 
 
-
-
-
-
-
 _builtins = {":help": help,
              ":rows": rows,
              ":chars": chars,
