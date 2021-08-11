@@ -2,12 +2,10 @@
 
 A command line tool to query databases via ODBC.  
 It has the following goals:  
-&nbsp;  
 * Keep dependencies to a minimum (only pyodbc so far)
 * Easy to install and use, but configurable
 * Support as many database engines as possible
-* Play nicely with Emacs' SQLi mode  
-&nbsp;  
+* Play nicely with Emacs' SQLi mode
 It is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/). That tool was born out of necessity since [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility) didn't quite work with SQLi. Over time I added support for other DB engines but it was never intended for full compatiblity.  
 Datum was built from scratch keeping in mind some of the limitations in sqlcmdline, but also trying very hard to avoid the second system effect :)  
 &nbsp;  
@@ -26,7 +24,7 @@ Datum was built from scratch keeping in mind some of the limitations in sqlcmdli
 
 ## Installation
 
-You can install `datum` using `pip`:
+You can install `datum` from this repository using `pip`:
 
 ```
 pip install git+https://github.com/sebasmonia/datum.git
@@ -81,24 +79,26 @@ The last example (on top of being more realistic with the use of uppercase in qu
 
 There's an option to provide an INI file to setup the start up value of Datum's config and setup "custom commands" (more on this in the relevant section).  
 If `--config` is not provided, Datum will look for a file named `config.ini` in the directory `$XDG_CONFIG_HOME/datum` or `$HOME/.config/datum` (or `%USERPROFILE%\.config\datum` on Windows).  
-When provided, the value is assumed to be a file in the current directory or a full path, and if not found then the config directory is searched. This is convenient in case you want to define custom queries for example per DB-engine using files named `mssql.ini`, `mariadb.ini`, `sqlite.ini`, etc.; you can just drop all the files in the Datum `.config` directory and use e.g. `--config=sqlite.ini` when you connect to a SQLite DB. You could also store custom queries per-database in separate files, or keep config files in different repositories, and so on.  
+When provided, the value is assumed to be a file in the current directory or a full path, and if not found then the config directory is searched.  
+This is convenient in case you want to define custom queries for example per DB-engine using files named `mssql.ini`, `mariadb.ini`, `sqlite.ini`, etc.; you can drop all the files in the Datum `.config` directory and use e.g. `--config=sqlite.ini` when you connect to a SQLite DB.  
+You could also store custom queries per-database in separate files, or keep config files in different repositories, and so on.  
 &nbsp;  
 The repository for Datum includes a throughly documented sample [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) file. Note that the file is completely optional, and all configuration can be modified at runtime.
 
 ## Commands
 
 
-* :help - Prints the command list.
-* :rows [number] - How many rows to print out of the resultset. Call with no number to see the current value. Use 0 for "all rows". Default: 50 rows
-* :chars [number] - How many chars per column to print. Call with no number to see the current value. Use 0 to not truncate. Default: 100 chars
-* :null [string] - String to show for "NULL" in the database. Call with no args to see the current string. Use "OFF" (no quotes) to show nothing. Note that this makes empty string and null hard to differentiate. Default: "[NULL]"
-* :newline [string] - String to replace newlines in values. Use ":newline OFF" (no quotes) to keep newlines as-is, it will most likely break the display of output. Call with no arg to display the current value. Default: "[NL]"
-* :tab [string] - String to replace tab in values. Use ":tab OFF" (no quotes) to keep tab characters. Call with no arguments to show the current value. Default: "[TAB]"
-* :timeout [number] - Seconds for command timeout - how long to wait for a command to finish running. This is set in the ODBC connection, use 0 to "wait forever". Default: 30 seconds
+* `:help` - Prints the command list.
+* `:rows [number]` - How many rows to print out of the resultset. Call with no number to see the current value. Use 0 for "all rows". Default: 50 rows
+* `:chars [number]` - How many chars per column to print. Call with no number to see the current value. Use 0 to not truncate. Default: 100 chars
+* `:null [string]` - String to show for "NULL" in the database. Call with no args to see the current string. Use "OFF" (no quotes) to show nothing. Note that this makes empty string and null hard to differentiate. Default: "[NULL]"
+* `:newline [string]` - String to replace newlines in values. Use ":newline OFF" (no quotes) to keep newlines as-is, it will most likely break the display of output. Call with no arg to display the current value. Default: "[NL]"
+* `:tab [string]` - String to replace tab in values. Use ":tab OFF" (no quotes) to keep tab characters. Call with no arguments to show the current value. Default: "[TAB]"
+* `:timeout [number]` - Seconds for command timeout - how long to wait for a command to finish running. This is set in the ODBC connection, use 0 to "wait forever". Default: 30 seconds
 
 ## Custom commands
 
-When there's a `[queries]` section in the INI file, these are added as custom commands. These queries can be parametrized in two levels: using `{placeholders}` that will be replaced using Python's string formatting, and then with `?` for ODBC parameters.
+When there is a `[queries]` section in the INI file, these are added as custom commands. These queries can be parametrized in two levels: using `{placeholders}` that will be replaced using Python's string formatting, and then with `?` for ODBC parameters.
 You can see more examples in the [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) sample file, but to give you an idea:
 
 ```
