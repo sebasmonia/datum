@@ -9,6 +9,7 @@ _default_config = {"rows_to_print": 50,
                    "null_string": "[NULL]",
                    "newline_replacement": "[NL]",
                    "tab_replacement": "[TAB]",
+                   "command_timeout": 30,
                    "custom_commands": {}}
 
 
@@ -70,6 +71,10 @@ def _read_config(config_file_path):
         "general",
         "tab_replacement",
         fallback=_default_config["tab_replacement"])
+    config["command_timeout"] = config_file.getint(
+        "general",
+        "command_timeout",
+        fallback=_default_config["command_timeout"])
     config["custom_commands"] = {}
     if "queries" in config_file:
         for name in config_file["queries"]:

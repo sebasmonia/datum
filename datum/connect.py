@@ -13,6 +13,7 @@ _database = None
 _user = None
 _pass = None
 _integrated = False
+_timeout = 30
 
 # The first newline here is useful for spacing later
 _header_message = """
@@ -23,9 +24,9 @@ a new line or ";;" at the end of a query.
 """
 
 
-def initialize_module(docopt_args):
+def initialize_module(docopt_args, config):
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
-    global _integrated
+    global _integrated, _timeout
     _conn_string = docopt_args["--conn_string"]
     if docopt_args["--conn_string"]:
         # TODO: use the connection string as-is
@@ -39,7 +40,7 @@ def initialize_module(docopt_args):
     _user = docopt_args["--user"]
     _pass = docopt_args["--pass"]
     _integrated = docopt_args["--integrated"]
-
+    _timeout = config["command_timeout"]
     _build_connection_string()
 
 
@@ -55,15 +56,15 @@ def show_connection_banner_and_get_prompt_header():
     return print_server + ("@" + _database if _database else "")
 
 
-def get_connection(command_timeout=30):
-    global _conn_string, _connection
+def get_connection():
+    global _conn_string, _connection, _timeout
 
     if _connection:
         return _connection
 
     _connection = pyodbc.connect(_conn_string, autocommit=True)
     _connection.add_output_converter(-155, _handle_datetimeoffset)
-    _connection.timeout = command_timeout
+    _connection.timeout = _timeout
     return _connection
 
 

@@ -16,7 +16,7 @@ def initialize(args):
     global config
     environment.resolve_envvar_args(args)
     config = environment.get_config_dict(args["--config"])
-    connect.initialize_module(args)
+    connect.initialize_module(args, config)
     printer.initialize_module(config)
     commands.initialize_module(config)
     # we don't _need_ to connect now, but it is a good place to blow up
