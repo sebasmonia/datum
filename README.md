@@ -8,7 +8,7 @@ It has the following goals:
 * Support as many database engines as possible
 * Play nicely with Emacs' SQLi mode  
 
-It is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/). That tool was born out of necessity since [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility) didn't quite work with SQLi. Over time I added support for other DB engines but it was never intended for full compatiblity.  
+It is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/), which was born as a quick replacement for [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility). Over time I added support for other DB engines but it was never intended for full compatiblity.  
 Datum was built from scratch keeping in mind some of the limitations in sqlcmdline, but also trying very hard to avoid the second system effect :)  
 &nbsp;  
 ## Table of contents
@@ -56,7 +56,7 @@ The alternative is to provide either a DSN, or an ODBC driver to use. A DSN migh
 You can interpolate environment variables in your shell of choice, a (hopefully) simpler alternative is to start a value with `ENV=`. For example `--pass=ENV=DB_SECRET` would get the value for the password from $DB_SECRET / %DB_SECRET%.
 
 Once connected, you are greeted with a messsage and a `>` prompt to type your queries. Special commands start with ":", use `:help` to get online help (or keep reading this manual).  
-Sample usage, connecting to the SQLite version of Chinook and querying:
+Sample usage: connecting to the SQLite version of Chinook and querying:
 
 ```
 [user@host]$ datum --driver SQLITE3 --database /path/to/datase/chinook.db
@@ -117,7 +117,7 @@ Rows affected: 0
 ```
 The last example shows that we can use `?` to [parametrize queries](https://github.com/mkleehammer/pyodbc/wiki/Getting-started#parameters). You will be asked for input for as many parameters as `?` characters are in the query. These are properly escaped by pyodbc, so they are convenient when working with strings.  
 &nbsp;  
-The "Rows printed" message shows how many rows were displayed from the total returned by the query, as you can see above some drivers don't report the latter. Similarly "Rows affected" is reported by the drivers, it tends to be more accurate for non-query operations.  
+The "Rows printed" message shows how many rows were displayed from the total returned by the query, as you can see above some drivers don't report the latter. Similarly "Rows affected" is reported by the drivers, it is usually accurate for non-query operations.  
 
 ## Configuration file
 
@@ -128,7 +128,7 @@ When `--config` is supplied, the value is assumed to be a file in the current di
 This is convenient in case you want to define custom queries for example per DB-engine using files named `mssql.ini`, `mariadb.ini`, `sqlite.ini`, etc.; you can drop all the files in the Datum `.config` directory and use e.g. `--config=sqlite.ini` when you connect to a SQLite DB.  
 You could also store custom queries per-database in separate files, or keep config files in different repositories, and so on.  
 &nbsp;  
-The repository for Datum includes a throughly documented sample [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) file. Note that the file is completely optional, and all configuration can be modified at runtime.
+The repository for Datum includes a throughly documented sample [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) file. Note that the file is optional, and all configuration can be modified at runtime.
 
 ## Commands
 
@@ -144,13 +144,13 @@ The repository for Datum includes a throughly documented sample [config.ini](htt
 ## Custom commands
 
 When there is a `[queries]` section in the INI file, these are added as custom commands. These queries can be parametrized in two levels: using `{placeholders}` that will be replaced using Python's string formatting, and then with `?` for ODBC parameters.
-You can see more examples in the [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) sample file, but to give you an idea:
-
+&nbsp;  
+You can't use `?` to parametrize LIMIT, but you can with a {placeholder}. You can even parametrize the target table. With this query declared in our `config.ini` file:
 ```
 [queries]
 limit=SELECT * FROM {table} LIMIT {how_many};
 ```
-We'll run these queries against the Chinook DB. You can't use `?` to parametrize LIMIT, but you can with a {placeholder}. You can even parametrize the target table:
+If we run this query connected to the Chinook DB:
 ```
 ChinookDSN
 >:limit
@@ -207,15 +207,12 @@ Rows affected: 0
 ChinookDSN
 >
 ```
+There are more examples in the [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) sample file.
 
 ## Emacs SQLi mode setup
 
-The previous version of Datum, sqlcmdline, was created as a drop-in replacement of existing MS SQL Server tools. To set it up in Emacs, it was enough to change `sql-ms` to run a different executable, and for other engines we could re-use most of the existing config.
-
-Datum was created with the intent of providing an easier to use CLI, so the parameters have more natural names (`--integrated` vs `-E`). But as much as possible, we still want to take advantage of existing Emacs facilities.
-
 In this repository there's a small package, [sql-datum](https://github.com/sebasmonia/datum/blob/main/sql-datum.el). Drop it somewhere in your load-path, `(require 'sql-datum)` and then you only need to add connections to `sql-connection-alist`.
-Example of a use-package based setup (the one I used to test!):
+Example of a use-package based setup, showcasing  different combination of options:
 
 ```elisp
 (use-package sql-datum :load-path "/path/to/sql-datum/inyour/localsetup"
@@ -230,18 +227,34 @@ Example of a use-package based setup (the one I used to test!):
                  (sql-datum-options '("--driver" "SQLITE3" ))
                  (sql-database "/path/to/datase/chinook.db")))
   (add-to-list 'sql-connection-alist
+               '("MSSQL-Integrated"
+                 (sql-product 'datum)
+                 (sql-server "myserver.somewhere.mycompany")
+                 (sql-database "northwind")
+                 (sql-user "")
+                 (sql-password "")
+                 (sql-datum-options '("--driver" "ODBC Driver 17 for SQL Server" "--integrated"))))
+  (add-to-list 'sql-connection-alist
                '("ChinookDSN"
                  (sql-product 'datum)
                  (sql-server "")
                  (sql-user "")
                  (sql-password "")
-                 (sql-datum-options '("--dsn" "ChinookNamed")))))
+                 (sql-datum-options '("--dsn" "ChinookDSN"))))
+  (add-to-list 'sql-connection-alist
+               '("MySQL-DSN-ENVVAR"
+                 (sql-product 'datum)
+                 (sql-server "")
+                 (sql-database "")
+                 (sql-user "userName")
+                 (sql-password "ENV=SECRET_ENV_VAR")
+                 (sql-datum-options '("--dsn" "ConnectionNameFromYourODBC.ini")))))
 ```
-With the setup above you can use `M-x sql-connect` to select to connect to "Chinook" and "ChinookDSN".
+With the setup above you can use `M-x sql-connect` then select the connection to "Chinook", "MSSQL-Integrated", "ChinookDSN" or "MySQL-DSN-ENVVAR".
 
 Things to note:  
 * The parameters `sql-server`, `sql-database`, `sql-user` and `sql-password` are mapped to Datum's --server, --database, --user and --password.
 * If any of them is not used, it has to be set to an empty string to make sure they are ignored.
-* Use `sql-datum-options` to provide any of parameters not included in the standard 4 mentioned above: --dsn, --driver, --integrated, --config.
+* Use `sql-datum-options` to provide any of parameters not included in the standard 4 mentioned above: --dsn, --driver, --integrated, --config, --conn_string.
 * There's an interactive command, `sql-datum`, that will prompt for each parameter, just like `sql-ms`, `sql-oracle`, etc.
 
