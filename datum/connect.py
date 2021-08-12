@@ -67,12 +67,14 @@ def show_connection_banner_and_get_prompt_header():
     return print_server + ("@" + _database if _database else "")
 
 
-def get_connection():
+def get_connection(force_new=False):
     global _conn_string, _connection, _timeout
 
-    if _connection:
+    if _connection and not force_new:
         return _connection
 
+    # As per https://github.com/mkleehammer/pyodbc/issues/43 we don't need to
+    # explicitly close the old connection, if there was one. So we don't check.
     _connection = pyodbc.connect(_conn_string, autocommit=True)
     _connection.add_output_converter(-155, _handle_datetimeoffset)
     _connection.timeout = _timeout

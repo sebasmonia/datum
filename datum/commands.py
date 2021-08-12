@@ -31,16 +31,9 @@ _help_text = """
 
 :timeout [number] Seconds for command timeouts - how long to wait for a command
                   to finish running.
+
+:reconnect        Force a new connection to the server, discarding the old one.
 """
-# :file [-enc] path{sep}Opens a file and runs the script. No checking'
-# /parsing of the file will take place. Use -enc to change the '
-# encoding\nused to read the file. Examples: -utf8, -cp1250\n'
-# :dbs database_name{sep}List all databases, or databases "like '
-# database_name".\n'
-# :use database_name{sep}changes the connection to "database_name".\n'
-# :timeout [seconds]{sep}sets the command timeout. '
-# Default: 30 seconds.')
-# """
 
 
 def initialize_module(config):
@@ -168,6 +161,7 @@ def tab(args):
 
 
 def timeout(args):
+    global _config
     # By the time we are in a position to handle this command, there's an open
     # connection we have been using
     connection = connect.get_connection()
@@ -178,9 +172,20 @@ def timeout(args):
             if new_value < 0:
                 raise ValueError("Why are you trying to break me...")
             connection.timeout = new_value
+            _config["command_timeout"] = new_value
         except ValueError:
             pass
     print("Command timeout set to", connection.timeout, "seconds.")
+
+
+def reconnect(args):
+    # Since the timeout command modified the config dict, and the timeout in
+    # the function below is picked up from the same place...
+    connect.get_connection(force_new=True)
+    # if get_connection throws, this message won't print
+    print("Opened new connection.")
+    # Making pyright happy, no one cares about the return value of this
+    return args
 
 
 def prepare_query(template):
@@ -205,7 +210,7 @@ _builtins = {":help": help,
              ":null": null,
              ":newline": newline,
              ":tab": tab,
-             # these two are on probation...
-             # ":use": command_use,
+             # Pending work:
              # ":file": command_file,
-             ":timeout": timeout}
+             ":timeout": timeout,
+             ":reconnect": reconnect}

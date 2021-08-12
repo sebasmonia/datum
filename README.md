@@ -140,6 +140,7 @@ The repository for Datum includes a throughly documented sample [config.ini](htt
 * `:newline [string]` - String to replace newlines in values. Use ":newline OFF" (no quotes) to keep newlines as-is, it will most likely break the display of output. Call with no arg to show the current replacement value. Default: "[NL]"
 * `:tab [string]` - String to replace tab in values. Use ":tab OFF" (no quotes) to keep tab characters. Call with no arguments to show the current string. Default: "[TAB]"
 * `:timeout [number]` - Seconds for command timeout - how long to wait for a command to finish running. This is set in the ODBC connection, use 0 to wait "forever". Default: 30 seconds
+* `:reconnect` - Force a new connection to the server, discarding the old one. Useful if you had a network hiccup, VPN drop, etc.
 
 ## Custom commands
 
