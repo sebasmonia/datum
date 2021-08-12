@@ -72,8 +72,18 @@ def help(args):
     global _help_text, _config
     print(_help_text)
     if _config["custom_commands"]:
-        print('Commands declared in the "queries" section of the config:')
-        print(", ".join(":" + k for k in _config["custom_commands"].keys()))
+        print('Commands declared in the "queries" section of the ',
+              'configuration file:')
+        line = ""
+        for key in _config["custom_commands"].keys():
+            # This will break if people start defining _really long_
+            # query names...
+            if len(line) + len(key) > 79:
+                print(line[:-1])  # don't print the last space...
+                line = key + ", "
+            else:
+                line += key + ", "
+        print(line[:-2])  # don't print the last comma and space
     # Return value is ignored, but returning "args" gets pyright to shut up
     # about it not being used :)
     return args
