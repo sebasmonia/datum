@@ -240,7 +240,7 @@ Example of a use-package based setup, showcasing  different combination of optio
                  (sql-product 'datum)
                  (sql-server "")
                  (sql-user "")
-                 (sql-password "")
+                 (sql-password 'ask)
                  (sql-datum-options '("--dsn" "ChinookDSN"))))
   (add-to-list 'sql-connection-alist
                '("MySQL-DSN-ENVVAR"
@@ -252,6 +252,7 @@ Example of a use-package based setup, showcasing  different combination of optio
                  (sql-datum-options '("--dsn" "ConnectionNameFromYourODBC.ini")))))
 ```
 With the setup above you can use `M-x sql-connect` then select the connection to "Chinook", "MSSQL-Integrated", "ChinookDSN" or "MySQL-DSN-ENVVAR".
+If you assign `'ask` to `sql-password`, you will be prompted each time try to connect (using `read-passwd`).
 
 Things to note:  
 * The parameters `sql-server`, `sql-database`, `sql-user` and `sql-password` are mapped to Datum's --server, --database, --user and --password.
