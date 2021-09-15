@@ -62,12 +62,13 @@ defined in the customization.  BUF-NAME is the name for the `comint' buffer."
                               (list "--database" sql-database))
                             (unless (string-empty-p sql-user)
                               (list "--user" sql-user))
-                            (unless (string-empty-p sql-password)
-                              (list "--pass" sql-password)))))
+                            (if (eq 'ask sql-password)
+                                (list "--pass" (read-passwd "Password (empty to skip): "))
+                              (unless (string-empty-p sql-password)
+                                (list "--pass" sql-password))))))
     (unless parameters
       ;; if this list is empty, prompt for datum parameters
       (setf parameters (sql-datum--prompt-connection)))
-    (message "Parameters is %s" (prin1-to-string parameters))
     (sql-comint product parameters buf-name)))
 
 (defun sql-datum--prompt-connection ()
