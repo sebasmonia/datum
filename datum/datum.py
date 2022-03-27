@@ -1,4 +1,4 @@
-"REPL loop module."
+"""REPL loop module."""
 
 from . import connect
 from . import environment
@@ -13,7 +13,7 @@ config = None
 
 
 def initialize(args):
-    global config
+    """Instantiate the global config, and init the sub-modules with it."""
     environment.resolve_envvar_args(args)
     config = environment.get_config_dict(args["--config"])
     connect.initialize_module(args, config)
@@ -25,6 +25,11 @@ def initialize(args):
 
 
 def query_loop():
+    """Query loop for Datum.
+
+    This function orchestrates the display of the prompt, running queries or
+    commands, and printing the results, if any.
+    """
     prompt_header = connect.show_connection_banner_and_get_prompt_header()
     print(prompt_header)
     query = prompt_for_query_or_command()
@@ -52,6 +57,7 @@ def query_loop():
 
 
 def prompt_for_query_or_command():
+    """Read the user's input, waiting for "query terminators" or commands."""
     lines = []
     while True:
         lines.append(input(">"))
@@ -68,6 +74,10 @@ def prompt_for_query_or_command():
 
 
 def prompt_parameters(query):
+    """Analyze the query text and read as many parameters as needed.
+
+    The logic to detemine how many parameters to read is somewhat fragile.
+    """
     # My thinking here is that  we should count "?" next to a space and
     # next to an operator. Ex: " ? ", ",?", "=?" Not sure if that is safe
     # enough, but it seems better than plainly counting "?" like sqlcmdline

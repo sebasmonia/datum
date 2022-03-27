@@ -47,6 +47,7 @@ import sys
 
 
 def main():
+    """Name is pretty descriptive, I think..."""
     args = docopt(__doc__)
     datum.initialize(args)
     datum.query_loop()

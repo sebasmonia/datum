@@ -1,5 +1,6 @@
-"""Everything related to interaction with the environment, not only env vars
-but also paths and configuration.
+"""Everything related to interaction with the environment.
+
+This includes not only env vars but also paths and configuration.
 """
 import configparser
 import os
@@ -14,8 +15,11 @@ _default_config = {"rows_to_print": 50,
 
 
 def resolve_envvar_args(args):
-    """For each parameter in args (populated from docotp), replaces the value
-with an env var value when prefixed with 'ENV='."""
+    """Replace environment variables in each arg, when needed.
+
+    Itearates args (populated from docotp), to replace the value with an env
+    var value only when prefixed with 'ENV='.
+    """
     for key, value in args.items():
         # I'd rather str(value) than check the type, I don't know why
         if str(value).startswith("ENV="):
@@ -24,7 +28,9 @@ with an env var value when prefixed with 'ENV='."""
 
 def get_config_dict(commands_arg):
     """Find and open (if present) a configuration file.
-Return default configuration values if the file isn't present."""
+
+    Will return the default configuration values if needed.
+    """
     global _default_config
     config_file_path = os.path.expanduser(commands_arg)
     # happiest path: it is an absolute path or a relative path we can resolve

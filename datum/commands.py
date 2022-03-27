@@ -1,5 +1,7 @@
 """Command handler for datum.
-This module deals with built-ins and processing of custom queries.
+
+This module deals with built-in commands (:rows, :reconnect, etc.) and
+processing of custom queries.
 """
 from . import connect
 from string import Formatter as _Formatter
@@ -37,11 +39,13 @@ _help_text = """
 
 
 def initialize_module(config):
+    """Initialize this module with a reference to the global config."""
     global _config, _custom_commands
     _config = config
 
 
 def handle(user_input):
+    """As it says on the tin, handle a command."""
     # built ins dictionary is defined at the bottom of the file
     global _builtins
     # we got here with confirmation that this is a command, so:
@@ -62,6 +66,7 @@ def handle(user_input):
 
 
 def help(args):
+    """Built-in :help command."""
     global _help_text, _config
     print(_help_text)
     if _config["custom_commands"]:
@@ -77,12 +82,10 @@ def help(args):
             else:
                 line += key + ", "
         print(line[:-2])  # don't print the last comma and space
-    # Return value is ignored, but returning "args" gets pyright to shut up
-    # about it not being used :)
-    return args
 
 
 def rows(args):
+    """Built-in :rows command."""
     global _config
 
     if args:
@@ -99,6 +102,7 @@ def rows(args):
 
 
 def chars(args):
+    """Built-in :chars command."""
     global _config
 
     if args:
@@ -117,6 +121,7 @@ def chars(args):
 
 
 def null(args):
+    """Built-in :null command."""
     global _config
 
     if args and args[0] == "OFF":
@@ -129,6 +134,7 @@ def null(args):
 
 
 def newline(args):
+    """Built-in :newline command."""
     global _config
 
     if args and args[0] == "OFF":
@@ -145,6 +151,7 @@ def newline(args):
 
 
 def tab(args):
+    """Built-in :tab command."""
     global _config
 
     if args and args[0] == "OFF":
@@ -161,6 +168,7 @@ def tab(args):
 
 
 def timeout(args):
+    """Built-in :timeout command."""
     global _config
     # By the time we are in a position to handle this command, there's an open
     # connection we have been using
@@ -179,6 +187,7 @@ def timeout(args):
 
 
 def reconnect(args):
+    """Built-in :reconnect command."""
     # Since the timeout command modified the config dict, and the timeout in
     # the function below is picked up from the same place...
     connect.get_connection(force_new=True)
@@ -189,6 +198,7 @@ def reconnect(args):
 
 
 def prepare_query(template):
+    """Replace the {} placeholders in a query template with user input."""
     f = _Formatter()
     # A set built out of the replacement keys present after the Formatter
     # parses the input
@@ -210,7 +220,5 @@ _builtins = {":help": help,
              ":null": null,
              ":newline": newline,
              ":tab": tab,
-             # Pending work:
-             # ":file": command_file,
              ":timeout": timeout,
              ":reconnect": reconnect}

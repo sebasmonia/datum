@@ -1,5 +1,4 @@
-"""Contains all the setup for new connections to the database.
-"""
+"""Contains all the setup for new connections to the database."""
 import pyodbc
 import struct
 
@@ -25,6 +24,7 @@ a new line or ";;" at the end of a query.
 
 
 def initialize_module(docopt_args, config):
+    """Construct/deconstruct the connection string for the current session."""
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
     global _integrated, _timeout
     _conn_string = docopt_args["--conn_string"]
@@ -56,6 +56,11 @@ def initialize_module(docopt_args, config):
 
 
 def show_connection_banner_and_get_prompt_header():
+    """Show the connection banner and return the prompt header.
+
+    Honestly, most of these function names are descriptive enough on their own,
+    and I love that. But I also hate Flymake warnings, so, here we are.
+    """
     global _server, _database, _dsn, _header_message
     # If the server name isn't explicit, then use the DSN name. Even then,
     # something like SQLite might now have server nor DSN, so show "-"
@@ -68,6 +73,11 @@ def show_connection_banner_and_get_prompt_header():
 
 
 def get_connection(force_new=False):
+    """Use the module's information to return a live connection to the DB.
+
+    With force_new=True, it will create a new connection even if one already
+    exists. That's how :reconnect works.
+    """
     global _conn_string, _connection, _timeout
 
     if _connection and not force_new:
@@ -94,7 +104,7 @@ def _build_connection_string():
     if _database:
         _conn_string += f"Database={_database};"
     if _integrated:
-        _conn_string += f"Trusted_Connection=Yes;"
+        _conn_string += "Trusted_Connection=Yes;"
     if _user:
         _conn_string += f"Uid={_user};"
     if _pass:
