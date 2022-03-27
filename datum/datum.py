@@ -86,6 +86,10 @@ def prompt_parameters(query):
     param_count += query.count(",?")
     param_count += query.count("=?")
     params = []
+    if param_count > 0:
+        # Add an empty line before asking for parameters, if any. This is a
+        # a very pragmatic fix to https://github.com/sebasmonia/datum/issues/4
+        print()
     for param_num in range(1, param_count + 1):
         params.append(input(f"{param_num}>"))
     return params
