@@ -33,43 +33,80 @@
 
 (defcustom sql-datum-program "datum"
   "Command to start Datum.
-See https://github.com/sebasmonia/datum for instructions on how to install."
+See https://github.com/sebasmonia/datum for instructions on how
+to install."
   :type 'file
   :group 'SQL)
 
 (defcustom sql-datum-login-params nil
   "Parameters that will prompted to connect to a DB using Datum.
-If you use the most common (server database user pass) values, you can use this
-variable.  If you need support for DSN, or a pre-built connection string, leave
-empty and rely on `sql-datum-options' instead."
+If you use the most common (server database user pass) values,
+you can use this variable. If you need support for DSN, or a
+pre-built connection string, leave empty and rely on
+`sql-datum-options' instead."
   :type 'sql-login-params
   :group 'SQL)
 
 (defcustom sql-datum-options nil
-  "List of datum options that aren't part of the sql.el standard parameters: --driver, --dsn, --config."
+  "List of datum options that aren't part of the sql.el standard
+parameters: --driver, --dsn, --config."
   :type '(repeat string)
   :group 'SQL)
 
 (defun sql-comint-datum (product options &optional buf-name)
   "Create a comint buffer and connect to database using Datum.
-PRODUCT is the sql product (datum).  OPTIONS are additional paramaters not
-defined in the customization.  BUF-NAME is the name for the `comint' buffer."
+PRODUCT is the sql product (datum). OPTIONS are additional
+paramaters not defined in the customization. BUF-NAME is the name
+for the `comint' buffer."
   ;; Support for "standard" parameter types that might be let-bound
   (let ((parameters (append options
                             (unless (string-empty-p sql-server)
                               (list "--server" sql-server))
                             (unless (string-empty-p sql-database)
                               (list "--database" sql-database))
-                            (unless (string-empty-p sql-user)
-                              (list "--user" sql-user))
-                            (if (eq 'ask sql-password)
-                                (list "--pass" (read-passwd "Password (empty to skip): "))
-                              (unless (string-empty-p sql-password)
-                                (list "--pass" sql-password))))))
+                            (sql-datum--comint-username)
+                            (sql-datum--comint-password))))
     (unless parameters
       ;; if this list is empty, prompt for datum parameters
       (setf parameters (sql-datum--prompt-connection)))
     (sql-comint product parameters buf-name)))
+
+(defun sql-datum--comint-username ()
+  "Determine the username for the connection.
+When `sql-user' is a string, use as-is. If it's the symbol
+auth-source, use said package to find the credentials.
+Return a list with login values, or nil if the login can't be
+determined/found."
+  (if (eq 'auth-source sql-user)
+      (list "--user" (plist-get (sql-datum--get-auth-source) :user))
+    ;; else:  when it's non-empty string, use as-is
+    (unless (string-empty-p sql-user)
+      (list "--user" sql-user))))
+
+(defun sql-datum--comint-password ()
+  "Determine the username for the connection.
+When `sql-password' is a string, use as-is. If it's the symbol
+auth-source, use said package to find the credentials.
+Return a list with passwrod values, or nil if can't be
+determined/found."
+  (if (eq 'auth-source sql-password)
+      (list "--pass" (auth-info-password (sql-datum--get-auth-source)))
+    ;; else: read from minibuffer if 'ask
+    (if (eq 'ask sql-password)
+        (list "--pass" (read-passwd "Password (empty to skip): "))
+      ;; finally, if it's non-empty string, use as-is
+      (unless (string-empty-p sql-password)
+        (list "--pass" sql-password)))))
+
+(defun sql-datum--get-auth-source ()
+  "Return the `auth-source' token for the current server@database pair.
+Raise an error if no entry is found."
+  (require 'auth-source)
+  (if-let ((host (concat sql-server "@" sql-database))
+           (auth-info (car (auth-source-search :host host
+                                               :require '(:secret)))))
+      auth-info
+    (error "Didn't find %s in auth-sources" host)))
 
 (defun sql-datum--prompt-connection ()
   "Prompt for datum connection parameters interactively.
