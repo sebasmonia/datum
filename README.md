@@ -213,7 +213,7 @@ There are more examples in the [config.ini](https://github.com/sebasmonia/datum/
 ## Emacs SQLi mode setup
 
 In this repository there's a small package, [sql-datum](https://github.com/sebasmonia/datum/blob/main/sql-datum.el). Drop it somewhere in your load-path, `(require 'sql-datum)` and then you only need to add connections to `sql-connection-alist`.
-Example of a use-package based setup, showcasing  different combination of options:
+Example of a use-package based setup, showcasing different combination of options:
 
 ```elisp
 (use-package sql-datum :load-path "/path/to/sql-datum/inyour/localsetup"
@@ -243,6 +243,14 @@ Example of a use-package based setup, showcasing  different combination of optio
                  (sql-password 'ask)
                  (sql-datum-options '("--dsn" "ChinookDSN"))))
   (add-to-list 'sql-connection-alist
+               '("MSSQL-authsource"
+                 (sql-product 'datum)
+                 (sql-server "myserver.somewhere.mycompany")
+                 (sql-database "chinook")
+                 (sql-user 'auth-source)
+                 (sql-password 'auth-source)
+                 (sql-datum-options '("--driver" "ODBC Driver 17 for SQL Server"))))
+  (add-to-list 'sql-connection-alist
                '("MySQL-DSN-ENVVAR"
                  (sql-product 'datum)
                  (sql-server "")
@@ -251,12 +259,20 @@ Example of a use-package based setup, showcasing  different combination of optio
                  (sql-password "ENV=SECRET_ENV_VAR")
                  (sql-datum-options '("--dsn" "ConnectionNameFromYourODBC.ini")))))
 ```
-With the setup above you can use `M-x sql-connect` then select the connection to "Chinook", "MSSQL-Integrated", "ChinookDSN" or "MySQL-DSN-ENVVAR".
-If you assign `'ask` to `sql-password`, you will be prompted each time try to connect (using `read-passwd`).
+With the setup above you can use `M-x sql-connect` then select a connection from "Chinook", "MSSQL-Integrated", "ChinookDSN", "MSSQL-authsource", or "MySQL-DSN-ENVVAR".  
+As seen above, there are two special symbols that can be used in the configuration:
+* `'ask` can be assigned to `sql-password` to get prompted each time you try to connect, using `read-passwd`.  
+* `'auth-source` can be used in either `sql-user` or `sql-password`, and then the parameter is retrieved from a backend supported by `auth-source`.  
+
+For the last one, I only use `.authinfo.gpg`, but the package supports Gnome's keyring and KDE's wallet. It also allows adding more backends, check its documentation.  
+The lookup is done with a combination of server and database, separate by a `@` character, for the one above:  
+```
+machine myserver.somewhere.mycompany@chinook login "the username" password "a secret password"
+```
 
 Things to note:  
 * The parameters `sql-server`, `sql-database`, `sql-user` and `sql-password` are mapped to Datum's --server, --database, --user and --password.
 * If any of them is not used, it has to be set to an empty string to make sure they are ignored.
-* Use `sql-datum-options` to provide any of parameters not included in the standard 4 mentioned above: --dsn, --driver, --integrated, --config, --conn_string.
+* Use `sql-datum-options` to provide any of the parameters not included in the standard 4 mentioned above: `--dsn`, `--driver`, `--integrated`, `--config`, `--conn_string`.
 * There's an interactive command, `sql-datum`, that will prompt for each parameter, just like `sql-ms`, `sql-oracle`, etc.
 
