@@ -1,3 +1,4 @@
+
 """Command handler for datum.
 
 This module deals with built-in commands (:rows, :reconnect, etc.) and
@@ -65,7 +66,7 @@ def handle(user_input):
     return output_query
 
 
-def help(args):
+def help_text(args):
     """Built-in :help command."""
     global _help_text, _config
     print(_help_text)
@@ -214,7 +215,7 @@ def prepare_query(template):
     return template.format(**kwargs)
 
 
-_builtins = {":help": help,
+_builtins = {":help": help_text,
              ":rows": rows,
              ":chars": chars,
              ":null": null,
