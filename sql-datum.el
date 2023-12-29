@@ -102,11 +102,11 @@ determined/found."
   "Return the `auth-source' token for the current server@database pair.
 Raise an error if no entry is found."
   (require 'auth-source)
-  (if-let ((host (concat sql-server "@" sql-database))
-           (auth-info (car (auth-source-search :host host
+  (if-let ((auth-info (car (auth-source-search :host sql-connection
                                                :require '(:secret)))))
       auth-info
-    (error "Didn't find %s in auth-sources" host)))
+    (error "Didn't find the connection \"%s\" in auth-sources"
+           sql-connection)))
 
 (defun sql-datum--prompt-connection ()
   "Prompt for datum connection parameters interactively.

@@ -265,9 +265,9 @@ As seen above, there are two special symbols that can be used in the configurati
 * `'auth-source` can be used in either `sql-user` or `sql-password`, and then the parameter is retrieved from a backend supported by `auth-source`.  
 
 For the last one, I only use `.authinfo.gpg`, but the package supports Gnome's keyring and KDE's wallet. It also allows adding more backends, check its documentation.  
-The lookup is done with a combination of server and database, separate by a `@` character, for the one above:  
+The lookup is done by connection name, for the one in the sample above:  
 ```
-machine myserver.somewhere.mycompany@chinook login "the username" password "a secret password"
+machine MSSQL-authsource login "the username" password "a secret password"
 ```
 
 Things to note:  
