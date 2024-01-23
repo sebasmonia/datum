@@ -51,8 +51,8 @@ def query_loop():
                 print("\nRows affected:", row_count, flush=True)
         except Exception as err:
             print("---ERROR---\n", err, "\n---ERROR---", flush=True)
-        print(flush=True)  # blank line
-        print(prompt_header)
+        # Print newline + prompt, then flush. Attemp to fix issue #8
+        print("\n", prompt_header, flush=True)
         query = prompt_for_query_or_command()
 
 
