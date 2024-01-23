@@ -34,6 +34,8 @@ def export_cursor_results(a_cursor):
         try:
             new_path = "{0}_{1}".format(path, suffix)
             suffix += 1
+            # Newline to separate each file output
+            print()
             export_resultset(new_path, a_cursor)
         except ProgrammingError as e:
             if "Previous SQL was not a query." in str(e):

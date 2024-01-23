@@ -92,6 +92,10 @@ def text_formatter(value):
     """
     global _config
     chars_to_replace = str.maketrans({"\n": _config["newline_replacement"],
+                                      # TODO: experimental, completely remove
+                                      # \r, since \n is treated as newline
+                                      # already
+                                      "\r": "",
                                       "\t": _config["tab_replacement"]})
     col_width = _config["column_display_length"]
     value = str(value)
