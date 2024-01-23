@@ -58,14 +58,17 @@ def print_resultset(a_cursor):
         odbc_rows = a_cursor.fetchall()
 
     rowcount = a_cursor.rowcount
-    if not odbc_rows:
-        return  # no rows returned!
+    # TODO: Revisit printing column headers only
+    # Why is this commented out? well, turns out it can be useful to print the
+    # column names even if there's no rows, and the cost of doing so is very
+    # low. So, as an experiment, let's see how this behaves for a while...
+    # if not odbc_rows:
+    #     return  # no rows returned!
     column_names = [text_formatter(column[0]) for column in
                     a_cursor.description]
     format_str, print_ready = format_rows(column_names, odbc_rows)
     print()  # blank line
-    print("\n".join(format_str.format(*row) for row in print_ready),
-          flush=True)
+    print("\n".join(format_str.format(*row) for row in print_ready))
     # Try to determine if all rows returned were printed
     # MS SQL Server doesn't report the total rows SELECTed,
     # but for example MySql does.
@@ -78,8 +81,7 @@ def print_resultset(a_cursor):
         # Curse you, MS SQL Driver!
         rowcount = "(unknown)"
     # We tried our best! report the numbers
-    print("\nRows printed: ", printed_rows, "/", rowcount, sep="",
-          flush=True)
+    print("\nRows printed: ", printed_rows, "/", rowcount, sep="")
 
 
 def text_formatter(value):
@@ -113,7 +115,13 @@ def format_rows(column_names, raw_rows):
         new_row = []
         new_len = 0
         for index, value in enumerate(row):
-            new_value = "#unknown#"  # this should never be printed...but...
+            # This will be printed whenever there isn't a proper conversion for
+            # a value. It used to print 'unknown', which made me think I was
+            # dealing with a real SQL value when it happened. So let's make
+            # SUPER EXPLICIT that the printer tripped.
+            # Also, setup a proper length so the output still looks nice :)
+            new_value = "#DatumPrinterBroke#"
+            new_len = 19
             if value is None:
                 new_len = 6
                 new_value = null_string
@@ -134,6 +142,12 @@ def format_rows(column_names, raw_rows):
                 new_value = value
             elif isinstance(value, str):
                 new_value = text_formatter(value)
+                new_len = len(new_value)
+            elif isinstance(value, bytes):
+                # Bytes are converted to string, and it is important to
+                # truncate them too. Imagine printing a whole file as binary!
+                # The 0x prefix was inspired by SSMS :)
+                new_value = text_formatter('0x' + value.hex())
                 new_len = len(new_value)
             if new_len > column_widths[index]:
                 column_widths[index] = new_len

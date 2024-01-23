@@ -5,12 +5,14 @@ This includes not only env vars but also paths and configuration.
 import configparser
 import os
 
+# "csv_path" is set by the :csv command, it should default to None
 _default_config = {"rows_to_print": 50,
                    "column_display_length": 100,
                    "null_string": "[NULL]",
                    "newline_replacement": "[NL]",
                    "tab_replacement": "[TAB]",
                    "command_timeout": 30,
+                   "csv_path": None,
                    "custom_commands": {}}
 
 
@@ -91,5 +93,8 @@ def _read_config(config_file_path):
         config["newline_replacement"] = "\n"
     if config["tab_replacement"] == "":
         config["tab_replacement"] = "\t"
+
+    # "csv_path" is set by the :csv command, and cleared after each use
+    config["csv_path"] = None
 
     return config

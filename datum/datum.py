@@ -3,6 +3,7 @@
 from . import connect
 from . import environment
 from . import printer
+from . import exporter
 from . import commands
 
 # The configuration read using environment.get_config_dict and referenced in
@@ -14,10 +15,12 @@ config = None
 
 def initialize(args):
     """Instantiate the global config, and init the sub-modules with it."""
+    global config
     environment.resolve_envvar_args(args)
     config = environment.get_config_dict(args["--config"])
     connect.initialize_module(args, config)
     printer.initialize_module(config)
+    exporter.initialize_module(config)
     commands.initialize_module(config)
     # we don't _need_ to connect now, but it is a good place to blow up
     # if the parameters we have aren't good
@@ -30,6 +33,7 @@ def query_loop():
     This function orchestrates the display of the prompt, running queries or
     commands, and printing the results, if any.
     """
+    global config
     prompt_header = connect.show_connection_banner_and_get_prompt_header()
     print(prompt_header)
     query = prompt_for_query_or_command()
@@ -47,20 +51,28 @@ def query_loop():
                 params = prompt_parameters(query)
                 cursor.execute(query, params)
                 row_count = cursor.rowcount
-                printer.print_cursor_results(cursor)
-                print("\nRows affected:", row_count, flush=True)
+                if config["csv_path"]:
+                    exporter.export_cursor_results(cursor)
+                else:
+                    # the default operation
+                    printer.print_cursor_results(cursor)
+                print("\nRows affected:", row_count)
         except Exception as err:
             print("---ERROR---\n", err, "\n---ERROR---", flush=True)
         # Print newline + prompt, then flush. Attemp to fix issue #8
-        print("\n", prompt_header, flush=True)
+        print("\n", prompt_header, sep="", flush=True)
         query = prompt_for_query_or_command()
 
 
 def prompt_for_query_or_command():
     """Read the user's input, waiting for "query terminators" or commands."""
+    global config
     lines = []
+    # New in version 0.6: if output to file was request, add a "csv" to the
+    # prompt string
+    prompt = "csv>" if config["csv_path"] else ">"
     while True:
-        lines.append(input(">"))
+        lines.append(input(prompt))
         last = lines[-1]
         if last.strip()[-2:] == ";;":
             # Exclude extra ";"

@@ -6,6 +6,7 @@ processing of custom queries.
 """
 from . import connect
 from string import Formatter as _Formatter
+import os
 
 _config = {}
 
@@ -34,6 +35,11 @@ _help_text = """
 
 :timeout [number] Seconds for command timeouts - how long to wait for a command
                   to finish running.
+
+:csv [path]       Export the output of the next query to a CSV file, without
+                  printing. The path is read literally, no need to escape
+                  spaces or quotes. Call with no arguments to cancel, if it was
+                  set before. File must not exist.
 
 :reconnect        Force a new connection to the server, discarding the old one.
 """
@@ -187,6 +193,40 @@ def timeout(args):
     print("Command timeout set to", connection.timeout, "seconds.")
 
 
+def csv_setup(args):
+    """Built-in :csv command.
+
+    Sets the export path in the config dictionary's 'csv_path' key, which
+    is read in the main loop to write to file rather than printing.
+    """
+    if args:
+        filename = ""
+        try:
+            # this is the one command where splitting by spaces isn't a good
+            # idea, let's re-join those args
+            filename = " ".join(args)
+            filename = os.path.abspath(filename)
+            if os.path.exists(filename):
+                print('File "', filename, '" already exists', sep="")
+                _config["csv_path"] = None
+                return
+            # and also try to open the file, if there's a problem, we fail
+            # RIGHT NOW and inform the user why.
+            open(filename, 'w').close()
+            # if we got here, then the path is valid
+            _config["csv_path"] = filename
+        except Exception as err:
+            print('ERROR opening file"', filename, '". Invalid path?',
+                  sep="")
+            return
+        print('CSV target "', _config["csv_path"], '"', sep="")
+    else:
+        # disable export if no parameter is provided
+        _config["csv_path"] = None
+        print("Disabled CSV writing")
+
+
+
 def reconnect(args):
     """Built-in :reconnect command."""
     # Since the timeout command modified the config dict, and the timeout in
@@ -222,4 +262,5 @@ _builtins = {":help": help_text,
              ":newline": newline,
              ":tab": tab,
              ":timeout": timeout,
+             ":csv": csv_setup,
              ":reconnect": reconnect}
