@@ -20,10 +20,9 @@ _help_text = """
 :chars [number]   How many chars per column to print. Call with no number to
                   see the current value. Use 0 to not truncate.
 
-:null [string]    String to show for "NULL" in the database. Call with no args
+:null [string]    String to show for "NULL" values. Call with no args
                   to see the current string. Use "OFF" (no quotes) to show
-                  nothing. Note that this makes empty string and null hard to
-                  differentiate.
+                  nothing (this makes empty string and null look the same)
 
 :newline [string] String to replace newlines in values. Use "OFF" (no quotes)
                   to keep newlines as-is, it will most likely break the display
@@ -36,12 +35,14 @@ _help_text = """
 :timeout [number] Seconds for command timeouts - how long to wait for a command
                   to finish running.
 
-:csv [path]       Export the output of the next query to a CSV file, without
-                  printing. The path is read literally, no need to escape
-                  spaces or quotes. Call with no arguments to cancel, if it was
-                  set before. File must not exist.
-
 :reconnect        Force a new connection to the server, discarding the old one.
+
+:csv [path]       Export the output of the next query to a CSV file. Call with
+                  no arguments to cancel with no output. Errors if the
+                  file already exists.
+
+:script [path]    Read a script from a file. The input is processed as a custom
+                  command, with support for {placeholders} and ? ODBC params.
 """
 
 
@@ -57,15 +58,14 @@ def handle(user_input):
     global _builtins
     # we got here with confirmation that this is a command, so:
     command_name, *args = user_input.strip().split(" ")
-    # For custom queries, this will return the formatted query. Other commands
-    # return empty, no output is printed and we get back to the prompt
+    # For custom queries, or :script, this will return the formatted query.
+    # Other commands return nothing, no output is printed and we get back to
+    # the input prompt loop
     output_query = ""
     if command_name in _builtins:
-        _builtins[command_name](args)
+        return _builtins[command_name](args)
     elif command_name[1:] in _config["custom_commands"]:
-        output_query = prepare_query(
-            _config["custom_commands"][command_name[1:]])
-        print("Command query:\n", output_query)
+        return prepare_query(_config["custom_commands"][command_name[1:]])
     else:
         print("Invalid command. Use :help for a list of available commands.")
 
@@ -196,17 +196,15 @@ def timeout(args):
 def csv_setup(args):
     """Built-in :csv command.
 
-    Sets the export path in the config dictionary's 'csv_path' key, which
-    is read in the main loop to write to file rather than printing.
+    Set the export path in the config dictionary's 'csv_path' key. This value
+    is read in the main loop, to write to file rather than printing.
     """
+    global _config
     if args:
         filename = ""
         try:
-            # this is the one command where splitting by spaces isn't a good
-            # idea, let's re-join those args
-            filename = " ".join(args)
-            filename = os.path.abspath(filename)
-            if os.path.exists(filename):
+            filename, exists = _args_to_abspath(args)
+            if exists:
                 print('File "', filename, '" already exists', sep="")
                 _config["csv_path"] = None
                 return
@@ -226,6 +224,31 @@ def csv_setup(args):
         print("Disabled CSV writing")
 
 
+def read_script(args):
+    """Built-in :script command.
+
+    Read the content of a file and return it as custom query text.
+    """
+    if args:
+        filename = ""
+        try:
+            filename, exists = _args_to_abspath(args)
+            if not exists:
+                print('File "', filename, '" does not exist', sep="")
+                return
+            with open(filename, 'r', encoding='utf-8') as script:
+                # Load all content before saying the file is loaded, and also
+                # remove all leading and trailing whitespace
+                text = script.read().strip()
+                print('Loaded script file "', filename, '"', sep="")
+                return prepare_query(text)
+        except Exception as err:
+            print('ERROR reading file"', filename, '"', sep="")
+            return
+    else:
+        print('No input path provided', sep="")
+        return
+
 
 def reconnect(args):
     """Built-in :reconnect command."""
@@ -235,7 +258,7 @@ def reconnect(args):
     # if get_connection throws, this message won't print
     print("Opened new connection.")
     # Making pyright happy, no one cares about the return value of this
-    return args
+    return
 
 
 def prepare_query(template):
@@ -252,7 +275,20 @@ def prepare_query(template):
         print()  # add an empty line if we read parameters
     # This could throw an error under a number of situations, but we'll let it
     # bubble so it is handled (and printed) on datum.query_loop
-    return template.format(**kwargs)
+    formatted_query = template.format(**kwargs)
+    print("Command query:\n", formatted_query)
+    return formatted_query
+
+
+def _args_to_abspath(args):
+    """Join args and return it as an absolute path.
+    Also confirm if the path exists.
+
+    Helper for :csv and :script
+    """
+    filename = " ".join(args)
+    filename = os.path.abspath(filename)
+    return (filename, os.path.exists(filename))
 
 
 _builtins = {":help": help_text,
@@ -263,4 +299,5 @@ _builtins = {":help": help_text,
              ":tab": tab,
              ":timeout": timeout,
              ":csv": csv_setup,
+             ":script": read_script,
              ":reconnect": reconnect}

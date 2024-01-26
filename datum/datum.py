@@ -59,8 +59,7 @@ def query_loop():
                 print("\nRows affected:", row_count)
         except Exception as err:
             print("---ERROR---\n", err, "\n---ERROR---", flush=True)
-        # Print newline + prompt, then flush. Attemp to fix issue #8
-        print("\n", prompt_header, sep="", flush=True)
+        print("\n", prompt_header, sep="")
         query = prompt_for_query_or_command()
 
 
@@ -71,18 +70,26 @@ def prompt_for_query_or_command():
     # New in version 0.6: if output to file was request, add a "csv" to the
     # prompt string
     prompt = "csv>" if config["csv_path"] else ">"
+    # Attempt to improve both the fix to issue #8 and printing speed, flush
+    # output as little as possible, and include the prompt when doing so
+    print(prompt, flush=True, end="")
+    lines.append(input())
     while True:
-        lines.append(input(prompt))
         last = lines[-1]
         if last.strip()[-2:] == ";;":
             # Exclude extra ";"
             return '\n'.join(lines)[:-1]
-        if last.strip().upper().startswith('GO'):
+        # Surprised I didn't catch this potential bug earlier:
+        # "startswith('GO')" casts too wide a net to terminate statements
+        if last.strip().upper() == 'GO':
             # Exclude GO
             return '\n'.join(lines[:-1])
         if last.startswith(":"):
             # For commands, ignore all prior input
             return last
+        # the first input read had the prompt pre-printed and output flushed,
+        # subsequent calls to input() have to include the prompt
+        lines.append(input(prompt))
 
 
 def prompt_parameters(query):
