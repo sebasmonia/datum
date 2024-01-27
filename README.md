@@ -1,5 +1,7 @@
 # Datum
 
+## Intro
+
 A command line tool to query databases via ODBC.  
 It has the following goals:  
 
@@ -11,6 +13,11 @@ It has the following goals:
 It is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/), which was born as a quick replacement for [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility). Over time I added support for other DB engines but it was never intended for full compatibility.  
 Datum was built from scratch keeping in mind some of the limitations in sqlcmdline, but also trying very hard to avoid the second system effect :)  
 &nbsp;  
+
+## v0.7 => v0.8 Breaking change
+
+The parameter to use a literal connection string has been changed from `--conn_string` to the more standard `--conn-string`.
+
 ## Table of contents
 
 <!--ts-->
@@ -38,7 +45,7 @@ All examples in this manual use the SQLite version of the [Chinook sample databa
 ## Connecting to a DB
 
 ```
-datum --conn_string=<connection_string> [--config=<path>]
+datum --conn-string=<connection_string> [--config=<path>]
 ```  
 &nbsp;  
 -OR-
@@ -274,6 +281,6 @@ machine MSSQL-authsource login "the username" password "a secret password"
 Things to note:  
 * The parameters `sql-server`, `sql-database`, `sql-user` and `sql-password` are mapped to Datum's --server, --database, --user and --password.
 * If any of them is not used, it has to be set to an empty string to make sure they are ignored.
-* Use `sql-datum-options` to provide any of the parameters not included in the standard 4 mentioned above: `--dsn`, `--driver`, `--integrated`, `--config`, `--conn_string`.
+* Use `sql-datum-options` to provide any of the parameters not included in the standard 4 mentioned above: `--dsn`, `--driver`, `--integrated`, `--config`, `--conn-string`.
 * There's an interactive command, `sql-datum`, that will prompt for each parameter, just like `sql-ms`, `sql-oracle`, etc.
 
