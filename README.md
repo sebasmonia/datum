@@ -227,6 +227,7 @@ Example of a use-package based setup, showcasing different combination of option
   (add-to-list 'sql-connection-alist
                '("Chinook"
                  (sql-product 'datum)
+                 (sql-send-terminator ";;")
                  (sql-server "")
                  (sql-user "")
                  (sql-password "")
@@ -235,6 +236,7 @@ Example of a use-package based setup, showcasing different combination of option
   (add-to-list 'sql-connection-alist
                '("MSSQL-Integrated"
                  (sql-product 'datum)
+                 (sql-send-terminator ";;")
                  (sql-server "myserver.somewhere.mycompany")
                  (sql-database "northwind")
                  (sql-user "")
@@ -243,6 +245,7 @@ Example of a use-package based setup, showcasing different combination of option
   (add-to-list 'sql-connection-alist
                '("ChinookDSN"
                  (sql-product 'datum)
+                 (sql-send-terminator ";;")
                  (sql-server "")
                  (sql-user "")
                  (sql-password 'ask)
@@ -250,6 +253,7 @@ Example of a use-package based setup, showcasing different combination of option
   (add-to-list 'sql-connection-alist
                '("MSSQL-authsource"
                  (sql-product 'datum)
+                 (sql-send-terminator ";;")
                  (sql-server "myserver.somewhere.mycompany")
                  (sql-database "chinook")
                  (sql-user 'auth-source)
@@ -258,6 +262,7 @@ Example of a use-package based setup, showcasing different combination of option
   (add-to-list 'sql-connection-alist
                '("MySQL-DSN-ENVVAR"
                  (sql-product 'datum)
+                 (sql-send-terminator ";;")
                  (sql-server "")
                  (sql-database "")
                  (sql-user "userName")
@@ -280,4 +285,5 @@ Things to note:
 * If any of them is not used, it has to be set to an empty string to make sure they are ignored.
 * Use `sql-datum-options` to provide any of the parameters not included in the standard 4 mentioned above: `--dsn`, `--driver`, `--integrated`, `--config`, `--conn-string`.
 * There's an interactive command, `sql-datum`, that will prompt for each parameter, just like `sql-ms`, `sql-oracle`, etc.
-
+* The configuration value `sql-send-terminator` is optional, but encouraged. It means when sending a buffer or active region to the SQLi process, you don't need to manually add a `;;` for the query to be executed immediately.  
+  Or maybe you do prefer that, to make execution more explicit 🙂 (thanks to @ghollisjr for reporting)
