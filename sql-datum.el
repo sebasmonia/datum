@@ -1,12 +1,12 @@
 ;;; sql-datum.el --- Adds Datum as a SQL Product   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Sebastian Monia
+;; Copyright (C) 2021-2024 Sebastian Monia
 ;;
 ;; Author: Sebastian Monia <smonia@outlook.com>
 ;; URL: https://github.com/sebasmonia/datum
 ;; Package-Requires: ((emacs "27.1"))
-;; Version: 1.0
-;; Keywords: maint tool
+;; Version: 1.1
+;; Keywords: languages processes tools
 
 ;; This file is not part of GNU Emacs.
 
@@ -38,20 +38,11 @@ to install."
   :type 'file
   :group 'SQL)
 
-(defcustom sql-datum-login-params nil
-  "Parameters that will prompted to connect to a DB using Datum.
-If you use the most common (server database user pass) values,
-you can use this variable. If you need support for DSN, or a
-pre-built connection string, leave empty and rely on
-`sql-datum-options' instead."
-  :type 'sql-login-params
-  :group 'SQL)
+(defvar sql-datum-login-params nil
+  "This value is provided for compatiblity with sql.el, do not change.")
 
-(defcustom sql-datum-options nil
-  "List of datum options that aren't part of the sql.el standard
-parameters: --driver, --dsn, --config."
-  :type '(repeat string)
-  :group 'SQL)
+(defvar sql-datum-options nil
+  "This value is provided for compatiblity with sql.el, do not change.")
 
 (defun sql-comint-datum (product options &optional buf-name)
   "Create a comint buffer and connect to database using Datum.
@@ -66,10 +57,15 @@ for the `comint' buffer."
                               (list "--database" sql-database))
                             (sql-datum--comint-username)
                             (sql-datum--comint-password))))
-    (unless parameters
-      ;; if this list is empty, prompt for datum parameters
+    ;; if the connection was started from `sql-connection-alist', only prompt
+    ;; when the parameters werent defined
+    (if sql-connection
+        (unless parameters
+          (setf parameters (sql-datum--prompt-connection)))
+      ;; but for sql-datum "manual" connections, always prompt
       (setf parameters (sql-datum--prompt-connection)))
     (sql-comint product parameters buf-name)))
+
 
 (defun sql-datum--comint-username ()
   "Determine the username for the connection.
@@ -138,13 +134,24 @@ This function will \"smartly\" ask for parameters."
                                                  (read-file-name "Config file path: ")))))
      parameters))
 
+;;;###autoload
 (defun sql-datum (&optional buffer)
   "Run Datum as an inferior process.
 The buffer with name BUFFER will be used or created."
   (interactive "P")
+  ;; when the call is interactive, the sql.el machinery will trip on the
+  ;; special symbol values 'auth-source and 'ask, which isn't surprising.
+  ;; Usually there's history for these, but that makes 0 sense in the context
+  ;; of the symbols, let's clear the values
+  (when (or (symbolp sql-user)
+            (null sql-user))
+    (setf sql-user ""))
+  (when (or (symbolp sql-password)
+            (null sql-password))
+    (setf sql-password ""))
   (sql-product-interactive 'datum buffer))
 
-(sql-add-product 'datum "Datum - ODBC DB Client"
+(sql-add-product 'datum "Datum - ODBC Client"
                  :free-software t
                  :prompt-regexp "^.*>"
                  :prompt-cont-regexp "^.*>"

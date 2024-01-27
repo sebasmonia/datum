@@ -2,6 +2,7 @@
 
 Usage:
     datum (-h | --help)
+    datum --list-drivers
     datum --conn-string=<connection_string> [--config=<path>]
     datum (--driver=<odbc_driver> | --dsn=<dsn>)
           [--server=<server> --database=<database>]
@@ -10,6 +11,9 @@ Usage:
 
 Options:
   -h --help             Show this screen.
+
+To print the list of drivers recognized and exit:
+    datum --list-drivers
 
 To provide a known connection string just use:
   --conn-string=<connection_string>
@@ -43,12 +47,18 @@ from $DB_SECRET.
 """
 from docopt import docopt
 from . import datum
+from . import drivers
 import sys
 
 
 def main():
     """Name is pretty descriptive, I think..."""
     args = docopt(__doc__)
+    if args["--list-drivers"]:
+        drivers.print_list()
+        # will exit with code 0
+        return
+    # We have lots of work to do :)
     datum.initialize(args)
     datum.query_loop()
 
