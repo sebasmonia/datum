@@ -1,7 +1,5 @@
 # Datum
 
-## Intro
-
 A command line tool to query databases via ODBC.  
 It has the following goals:  
 
@@ -10,7 +8,7 @@ It has the following goals:
 * Support as many database engines as possible
 * Play nicely with Emacs' SQLi mode  
 
-It is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/), which was born as a quick replacement for [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility). Over time I added support for other DB engines but it was never intended for full compatibility.  
+Datum is an attempt at a cleaner version of [sqlcmdline](https://github.com/sebasmonia/sqlcmdline/), which in turn was born as a quick replacement for [sqlcmd](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility). Over time `sqlcmdline` gained support for more DB engines and other features, but it was never intended for use other than MSSQL.  
 Datum was built from scratch keeping in mind some of the limitations in sqlcmdline, but also trying very hard to avoid the second system effect :)  
 &nbsp;  
 
@@ -25,7 +23,7 @@ The parameter to use a literal connection string has been changed from `--conn_s
    * [Installation](#installation)
    * [Connecting to a DB](#connecting-to-a-db)
    * [Configuration file](#configuration-file)
-   * [Commands](#commands)
+   * [Built-in Commands](#built-in-commands)
    * [Custom commands](#custom-commands)
    * [Emacs SQLi mode setup](#emacs-sqli-mode-setup)
 
@@ -47,9 +45,7 @@ All examples in this manual use the SQLite version of the [Chinook sample databa
 ```
 datum --conn-string=<connection_string> [--config=<path>]
 ```  
-&nbsp;  
 -OR-
-&nbsp;  
 ```
 datum (--driver=<odbc_driver> | --dsn=<dsn>)
       [--server=<server> --database=<database>]
@@ -63,7 +59,7 @@ The alternative is to provide either a DSN, or an ODBC driver to use. A DSN migh
 You can interpolate environment variables in your shell of choice, a (hopefully) simpler alternative is to start a value with `ENV=`. For example `--pass=ENV=DB_SECRET` would get the value for the password from $DB_SECRET / %DB_SECRET%.
 
 Once connected, you are greeted with a message and a `>` prompt to type your queries. Special commands start with ":", use `:help` to get online help (or keep reading this manual).  
-Sample usage: connecting to the SQLite version of Chinook and querying:
+For example, if we were to connect to the SQLite version of Chinook and start querying...  
 
 ```
 [user@host]$ datum --driver SQLITE3 --database /path/to/datase/chinook.db
@@ -137,7 +133,7 @@ You could also store custom queries per-database in separate files, or keep conf
 &nbsp;  
 The repository for Datum includes a thoroughly documented sample [config.ini](https://github.com/sebasmonia/datum/blob/main/config.ini) file. Note that the file is optional, and all configuration can be modified at runtime.
 
-## Commands
+## Built-in commands
 
 * `:help` - Prints the command list.
 * `:rows [number]` - How many rows to print out of the resultset. Call with no number to see the current value. Use 0 for "all rows". If your query will return thousands of rows, printing will block the terminal for a few seconds. Default: 50 rows
@@ -154,12 +150,12 @@ The repository for Datum includes a thoroughly documented sample [config.ini](ht
 
 When there is a `[queries]` section in the INI file, these are added as custom commands. These queries can be parameterized in two levels: using `{placeholders}` that will be replaced using Python's string formatting, and then with `?` for ODBC parameters.
 &nbsp;  
-You can't use `?` to parameterize LIMIT, but you can with a {placeholder}. You can even parameterize the target table. With this query declared in our `config.ini` file:
+You can't use `?` to parameterize LIMIT, but you can with a {placeholder}. You can even parameterize the target table. Assuming we have this in our `config.ini` file:
 ```
 [queries]
 limit=SELECT * FROM {table} LIMIT {how_many};
 ```
-If we run this query connected to the Chinook DB:
+and if we run this query connected to the Chinook DB:
 ```
 ChinookDSN
 >:limit
@@ -187,7 +183,8 @@ Rows affected: 0
 ChinookDSN
 >
 ```
-After the query template runs through format(), it is executed as if it was typed by the user, so we can combine both type of parameters, let's add one more query to our INI file:
+After the query template runs through `format()`, it is executed as if it was typed by the user. This means we can combine both type of parameters.  
+Let's add one more query to our INI file:
 ```
 [queries]
 limit=SELECT * FROM {table} LIMIT {how_many};
@@ -273,7 +270,7 @@ As seen above, there are two special symbols that can be used in the configurati
 * `'auth-source` can be used in either `sql-user` or `sql-password`, and then the parameter is retrieved from a backend supported by `auth-source`.  
 
 For the last one, I only use `.authinfo.gpg`, but the package supports Gnome's keyring and KDE's wallet. It also allows adding more backends, check its documentation.  
-The lookup is done by connection name, for the one in the sample above:  
+The lookup is done by connection name, for the one in the sample above, you would add to your authinfo:  
 ```
 machine MSSQL-authsource login "the username" password "a secret password"
 ```
