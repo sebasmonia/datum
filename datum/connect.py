@@ -27,8 +27,8 @@ def initialize_module(docopt_args, config):
     """Construct/deconstruct the connection string for the current session."""
     global _conn_string, _driver, _dsn, _server, _database, _user, _pass
     global _integrated, _timeout
-    _conn_string = docopt_args["--conn_string"]
-    if docopt_args["--conn_string"]:
+    _conn_string = docopt_args["--conn-string"]
+    if docopt_args["--conn-string"]:
         # We will use the connection string as-is
         # but attempt to extract server/dsn and db name for the prompt
         components = _conn_string.split(";")

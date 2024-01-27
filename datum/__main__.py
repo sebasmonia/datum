@@ -2,7 +2,7 @@
 
 Usage:
     datum (-h | --help)
-    datum --conn_string=<connection_string> [--config=<path>]
+    datum --conn-string=<connection_string> [--config=<path>]
     datum (--driver=<odbc_driver> | --dsn=<dsn>)
           [--server=<server> --database=<database>]
           [--user=<username> --pass=<password> --integrated]
@@ -12,7 +12,7 @@ Options:
   -h --help             Show this screen.
 
 To provide a known connection string just use:
-  --conn_string=<connection_string>
+  --conn-string=<connection_string>
 
 Else it will be built using the individual parameters, start with how and what
 to connect to:
