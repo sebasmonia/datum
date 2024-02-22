@@ -39,7 +39,7 @@ _help_text = """
 
 :csv [path]       Export the output of the next query to a CSV file. Call with
                   no arguments to cancel with no output. Errors if the
-                  file already exists.
+                  file already exists, to overwrite use ":csv ! [path]"
 
 :script [path]    Read a script from a file. The input is processed as a custom
                   command, with support for {placeholders} and ? ODBC params.
@@ -201,10 +201,14 @@ def csv_setup(args):
     """
     global _config
     if args:
+        overwrite = (args[0] == "!")
+        if overwrite:
+            # remove the initial "!" modifier
+            args = args[1:]
         filename = ""
         try:
             filename, exists = _args_to_abspath(args)
-            if exists:
+            if exists and not overwrite:
                 print('File "', filename, '" already exists', sep="")
                 _config["csv_path"] = None
                 return
