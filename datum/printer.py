@@ -1,6 +1,6 @@
 """Datum's query output printer."""
 from collections import defaultdict
-from datetime import datetime, date
+from datetime import datetime, date, time
 from pyodbc import ProgrammingError
 import decimal
 import math
@@ -132,9 +132,12 @@ def format_rows(column_names, raw_rows):
             if isinstance(value, bool):
                 new_len = 6
                 new_value = value
-            elif isinstance(value, datetime):
-                new_len = 26
+            elif isinstance(value, time):
                 new_value = value.isoformat()
+                new_len = len(new_value)
+            elif isinstance(value, datetime):
+                new_value = value.isoformat()
+                new_len = len(new_value)
             elif isinstance(value, date):
                 new_len = 10
                 new_value = value.isoformat()
