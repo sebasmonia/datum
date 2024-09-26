@@ -187,4 +187,9 @@ def decimal_len(decimal_number):
     """Calculate the length, in characters, of a number with decimals."""
     sign, digits, _ = decimal_number.as_tuple()
     # digits + separator + sign (where sign is either 0 or 1 for negatives)
-    return len(digits) + 1 + sign
+    total_length = len(digits) + 1 + sign
+    # TODO: I need to give this more thought, but it seems by default we get at
+    # most 22 characters printed. This only became apparent working with Oracle
+    # , which BTW reports _all numbers_ as Decimal. But is that the driver, or
+    # just this particular DB? Until I know, let's take the easy way out...
+    return min(22, total_length)
