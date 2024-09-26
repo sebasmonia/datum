@@ -58,12 +58,8 @@ def print_resultset(a_cursor):
         odbc_rows = a_cursor.fetchall()
 
     rowcount = a_cursor.rowcount
-    # TODO: Revisit printing column headers only
-    # Why is this commented out? well, turns out it can be useful to print the
-    # column names even if there's no rows, and the cost of doing so is very
-    # low. So, as an experiment, let's see how this behaves for a while...
-    # if not odbc_rows:
-    #     return  # no rows returned!
+    # If there are no rows, we still print the column names, as this is useful
+    # when exploring how many columns there are and their names in a new DB
     column_names = [text_formatter(column[0]) for column in
                     a_cursor.description]
     format_str, print_ready = format_rows(column_names, odbc_rows)
