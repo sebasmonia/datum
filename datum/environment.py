@@ -42,8 +42,14 @@ def get_config_dict(commands_arg):
         base_dir = os.getenv("XDG_CONFIG_HOME")
         # no specific XDG_CONFIG_HOME, then do fallback as outlined in
         # https://specifications.freedesktop.org/basedir-spec/latest/
+        # BUT!!! first check for explicit HOME - Python stopped using this
+        # value in Windows in version 3.8 #thanksihateit but it is what it is
+        if not base_dir and "HOME" in os.environ:
+            base_dir = os.path.join(os.environ["HOME"], ".config")
         if not base_dir:
             # as seen in https://stackoverflow.com/a/4028943
+            # this is probably redundant for *nix, since we look for $HOME
+            # above, but still covers the $USERPROFILE case in Windows
             base_dir = os.path.join(os.path.expanduser("~"), ".config")
         config_file_path = os.path.join(base_dir,
                                         "datum",
