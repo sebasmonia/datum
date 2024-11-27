@@ -43,12 +43,13 @@ def export_cursor_results(a_cursor):
             else:
                 raise e
 
+
 def export_resultset(path, cursor):
     """Export the results of cursor (the "current" resultset).
 
     This function will attempt to keep the user updated as the export happens.
     """
-    batch_size = 10000
+    batch_size = 100000
     print('Writing to file, one ! per', batch_size, 'rows:')
     with open(path, 'w', encoding='utf-8') as outputfile:
         writer = csv.writer(outputfile)
