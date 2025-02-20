@@ -143,7 +143,7 @@ The repository for Datum includes a thoroughly documented sample [config.ini](ht
 * `:tab [string]` - String to replace tab in values. Use ":tab OFF" (no quotes) to keep tab characters. Call with no arguments to show the current string. Default: "[TAB]"
 * `:timeout [number]` - Seconds for command timeout - how long to wait for a command to finish running. This is set in the ODBC connection, use 0 to wait "forever". Default: 30 seconds
 * `:reconnect` - Force a new connection to the server, discarding the old one. Useful if you had a network hiccup, VPN drop, etc.
-* `:csv [path]` - Export the output of the next query to a CSV file, without printing. The path is read literally, no need to escape characters, and it can be absolute or relative. Call with no arguments to cancel, if it was set before. 
+* `:csv [path]` - Export the output of queries to a CSV file, without printing. The path is read literally, no need to escape characters, and it can be absolute or relative. Call with no arguments to cancel, if it was set before. 
 * `:script [path]` - Read a script from a file. The input is processed as a custom command, so it supports `{placeholders}` and `?` ODBC parameters. See next section for more details on custom commands.
 
 ## Custom commands

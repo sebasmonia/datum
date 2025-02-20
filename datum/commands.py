@@ -37,9 +37,8 @@ _help_text = """
 
 :reconnect        Force a new connection to the server, discarding the old one.
 
-:csv [path]       Export the output of the next query to a CSV file. Call with
-                  no arguments to cancel with no output. Errors if the
-                  file already exists, to overwrite use ":csv ! [path]"
+:csv [path]       Export the query output to CSV file. Call with no arguments
+                  to print results again.
 
 :script [path]    Read a script from a file. The input is processed as a custom
                   command, with support for {placeholders} and ? ODBC params.
