@@ -21,7 +21,6 @@ def export_cursor_results(a_cursor):
     # Before trying anything, clear the value from the config dict.
     # Even if there's an error, we should go back to printing results.
     path = _config["csv_path"]
-    _config["csv_path"] = None
     try:
         export_resultset(path, a_cursor)
     except ProgrammingError as e:
@@ -29,14 +28,11 @@ def export_cursor_results(a_cursor):
             pass
         else:
             raise e
-    suffix = 1
     while a_cursor.nextset():
         try:
-            new_path = "{0}_{1}".format(path, suffix)
-            suffix += 1
             # Newline to separate each file output
             print()
-            export_resultset(new_path, a_cursor)
+            export_resultset(path, a_cursor, '\n\n')
         except ProgrammingError as e:
             if "Previous SQL was not a query." in str(e):
                 continue
@@ -44,14 +40,16 @@ def export_cursor_results(a_cursor):
                 raise e
 
 
-def export_resultset(path, cursor):
+def export_resultset(path, cursor, prefix=None):
     """Export the results of cursor (the "current" resultset).
 
     This function will attempt to keep the user updated as the export happens.
     """
     batch_size = 100000
-    print('Writing to file, one ! per', batch_size, 'rows:')
-    with open(path, 'w', encoding='utf-8') as outputfile:
+    print('Writing resultset, one ! per', batch_size, 'rows:')
+    with open(path, 'a', encoding='utf-8', newline='') as outputfile:
+        if prefix:
+            outputfile.write(prefix)
         writer = csv.writer(outputfile)
         # column headers are written even if no rows are returned
         writer.writerow([column[0] for column in cursor.description])

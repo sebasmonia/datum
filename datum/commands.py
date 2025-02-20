@@ -201,20 +201,12 @@ def csv_setup(args):
     """
     global _config
     if args:
-        overwrite = (args[0] == "!")
-        if overwrite:
-            # remove the initial "!" modifier
-            args = args[1:]
         filename = ""
         try:
-            filename, exists = _args_to_abspath(args)
-            if exists and not overwrite:
-                print('File "', filename, '" already exists', sep="")
-                _config["csv_path"] = None
-                return
-            # and also try to open the file, if there's a problem, we fail
+            filename, _ = _args_to_abspath(args)
+            # Try to open the file, if there's a problem, we fail
             # RIGHT NOW and inform the user why.
-            open(filename, 'w').close()
+            open(filename, 'a').close()
             # if we got here, then the path is valid
             _config["csv_path"] = filename
         except Exception as err:
