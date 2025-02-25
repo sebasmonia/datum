@@ -38,6 +38,15 @@ to install."
   :type 'file
   :group 'SQL)
 
+(defcustom sql-datum-password-variable "SQLDATUMPASS"
+  "Environment variable to store the connection password.
+When a name is provided (default \"SQLDATUMPASS\") it is used as a temporary
+storage right before starting datum, and cleared right after.
+If nil, use the \"--pass\" flag, but then the password is visible for
+example in `list-processes'."
+  :type 'string
+  :group 'SQL)
+
 (defvar sql-datum-login-params nil
   "This value is provided for compatiblity with sql.el, do not change.")
 
@@ -55,17 +64,30 @@ for the `comint' buffer."
                               (list "--server" sql-server))
                             (unless (string-empty-p sql-database)
                               (list "--database" sql-database))
-                            (sql-datum--comint-username)
-                            (sql-datum--comint-password))))
-    ;; if the connection was started from `sql-connection-alist', only prompt
-    ;; when the parameters werent defined
-    (if sql-connection
-        (unless parameters
-          (setf parameters (sql-datum--prompt-connection)))
-      ;; but for sql-datum "manual" connections, always prompt
-      (setf parameters (sql-datum--prompt-connection)))
-    (sql-comint product parameters buf-name)))
-
+                            (sql-datum--comint-username)))
+        (pass (sql-datum--comint-get-password)))
+    ;; always prompt, unless the connection was started from
+    ;; `sql-connection-alist' and already had parameters defined
+    (unless (and sql-connection parameters)
+      (let ((conn-pair (sql-datum--prompt-connection)))
+        (setf parameters (car conn-pair))
+        (setf pass (cdr conn-pair))))
+    ;; If there's a password, use an environment variable when defined. It's
+    ;; the default, but can be disabled in case the user wants clear text pass
+    ;; (nice for debugging) or if there's another mechanism for auth.
+    (unless (string-empty-p pass)
+      (setf parameters
+            (append parameters
+                    (if sql-datum-password-variable
+                        (progn
+                          (setenv sql-datum-password-variable pass)
+                          (list "--pass"
+                                (format "ENV=%s" sql-datum-password-variable)))
+                      (list "--pass" pass)))))
+    (sql-comint product parameters buf-name)
+    ;; clear this if it was used
+    (when sql-datum-password-variable
+      (setenv sql-datum-password-variable))))
 
 (defun sql-datum--comint-username ()
   "Determine the username for the connection.
@@ -79,20 +101,19 @@ determined/found."
     (unless (string-empty-p sql-user)
       (list "--user" sql-user))))
 
-(defun sql-datum--comint-password ()
-  "Determine the username for the connection.
+(defun sql-datum--comint-get-password ()
+  "Determine the password for the connection.
 When `sql-password' is a string, use as-is. If it's the symbol
 auth-source, use said package to find the credentials.
-Return a list with passwrod values, or nil if can't be
-determined/found."
+Return the password value, or nil if can't be determined/found."
   (if (eq 'auth-source sql-password)
-      (list "--pass" (auth-info-password (sql-datum--get-auth-source)))
+      (auth-info-password (sql-datum--get-auth-source))
     ;; else: read from minibuffer if 'ask
     (if (eq 'ask sql-password)
-        (list "--pass" (read-passwd "Password (empty to skip): "))
+        (read-passwd "Password (empty to skip): "))
       ;; finally, if it's non-empty string, use as-is
       (unless (string-empty-p sql-password)
-        (list "--pass" sql-password)))))
+        sql-password)))
 
 (defun sql-datum--get-auth-source ()
   "Return the `auth-source' token for the current server@database pair.
@@ -106,33 +127,35 @@ Raise an error if no entry is found."
 
 (defun sql-datum--prompt-connection ()
   "Prompt for datum connection parameters interactively.
-This function will \"smartly\" ask for parameters."
+This function will \"smartly\" ask for parameters.
+Return a cons with the parameters and the password prompted."
   (let ((parameters (if (y-or-n-p "Do you have a DSN? ")
                         (list "--dsn"
                               (read-string "DSN: "))
                       (list "--driver"
-                            (read-string "ODBC Driver: ")))))
-   (let ((server (read-string "Server (empty to skip): ")))
-     (unless (string-empty-p server)
-       (setf parameters (append parameters (list "--server" server)))))
-   (let ((database (read-string "Database (empty to skip): ")))
-     (unless (string-empty-p database)
-       (setf parameters (append parameters (list "--database" database)))))
-   (let ((user (read-string "Username (empty to skip): "))
-         (pass (read-passwd "Password (empty to skip): ")))
-     (unless (string-empty-p user)
-       (setf parameters (append parameters (list "--user" user))))
-     (unless (string-empty-p pass)
-       (setf parameters (append parameters (list "--pass" pass))))
-     ;; if user and pass are empty ask about integrated security, but
-     ;; it is valid that the user says no to all (SQLite)
-     (when (and (string-empty-p user) (string-empty-p pass))
-       (when (y-or-n-p "No user nor password provided.  Use Integrated security? ")
-         (setf parameters (append parameters (list "--integrated"))))))
-     (when (y-or-n-p "Specify a config file? ")
-       (setf parameters (append parameters (list "--config"
-                                                 (read-file-name "Config file path: ")))))
-     parameters))
+                            (read-string "ODBC Driver: "))))
+        server database user password)
+    (setf server (read-string "Server (empty to skip): "))
+    (unless (string-empty-p server)
+      (setf parameters (append parameters (list "--server" server))))
+    (setf database (read-string "Database (empty to skip): "))
+    (unless (string-empty-p database)
+      (setf parameters (append parameters (list "--database" database))))
+    (setf user (read-string "Username (empty to skip): "))
+    (unless (string-empty-p user)
+      (setf parameters (append parameters (list "--user" user))))
+    ;; will be returned, it might never be added to the list,
+    ;; depends on the value of `sql-datum-password-variable'
+    (setf pass (read-passwd "Password (empty to skip): "))
+    ;; if user and pass are empty ask about integrated security, but
+    ;; it is valid that the user says no to all (SQLite)
+    (when (and (string-empty-p user) (string-empty-p pass))
+      (when (y-or-n-p "No user nor password provided.  Use Integrated security? ")
+        (setf parameters (append parameters (list "--integrated")))))
+    (when (y-or-n-p "Specify a config file? ")
+      (setf parameters (append parameters (list "--config"
+                                                (read-file-name "Config file path: ")))))
+    (cons parameters pass)))
 
 ;;;###autoload
 (defun sql-datum (&optional buffer)
@@ -151,14 +174,14 @@ The buffer with name BUFFER will be used or created."
     (setf sql-password ""))
   (sql-product-interactive 'datum buffer))
 
-(sql-add-product 'datum "Datum - ODBC Client"
-                 :free-software t
-                 :prompt-regexp "^.*>"
-                 :prompt-cont-regexp "^.*>"
-                 :sqli-comint-func 'sql-comint-datum
-                 :sqli-login 'sql-datum-login-params
-                 :sqli-program 'sql-datum-program
-                 :sqli-options 'sql-datum-options)
+;; (sql-add-product 'datum "Datum - ODBC Client"
+;;                  :free-software t
+;;                  :prompt-regexp "^.*>"
+;;                  :prompt-cont-regexp "^.*>"
+;;                  :sqli-comint-func 'sql-comint-datum
+;;                  :sqli-login 'sql-datum-login-params
+;;                  :sqli-program 'sql-datum-program
+;;                  :sqli-options 'sql-datum-options)
 
 (provide 'sql-datum)
 ;;; sql-datum.el ends here
