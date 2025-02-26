@@ -174,14 +174,14 @@ The buffer with name BUFFER will be used or created."
     (setf sql-password ""))
   (sql-product-interactive 'datum buffer))
 
-;; (sql-add-product 'datum "Datum - ODBC Client"
-;;                  :free-software t
-;;                  :prompt-regexp "^.*>"
-;;                  :prompt-cont-regexp "^.*>"
-;;                  :sqli-comint-func 'sql-comint-datum
-;;                  :sqli-login 'sql-datum-login-params
-;;                  :sqli-program 'sql-datum-program
-;;                  :sqli-options 'sql-datum-options)
+(sql-add-product 'datum "Datum - ODBC Client"
+                 :free-software t
+                 :prompt-regexp "^.*>"
+                 :prompt-cont-regexp "^.*>"
+                 :sqli-comint-func 'sql-comint-datum
+                 :sqli-login 'sql-datum-login-params
+                 :sqli-program 'sql-datum-program
+                 :sqli-options 'sql-datum-options)
 
 (provide 'sql-datum)
 ;;; sql-datum.el ends here
