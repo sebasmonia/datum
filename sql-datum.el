@@ -40,10 +40,9 @@ to install."
 
 (defcustom sql-datum-password-variable "SQLDATUMPASS"
   "Environment variable to store the connection password.
-When a name is provided (default \"SQLDATUMPASS\") it is used as a temporary
-storage right before starting datum, and cleared right after.
-If nil, use the \"--pass\" flag, but then the password is visible for
-example in `list-processes'."
+When a name is provided, it is used as a temporary storage right before
+starting datum, and cleared right after. If nil, use the \"--pass\"
+flag, but then the password is visible for example in `list-processes'."
   :type 'string
   :group 'SQL)
 
@@ -75,7 +74,7 @@ for the `comint' buffer."
     ;; If there's a password, use an environment variable when defined. It's
     ;; the default, but can be disabled in case the user wants clear text pass
     ;; (nice for debugging) or if there's another mechanism for auth.
-    (unless (string-empty-p pass)
+    (unless (or (null pass) (string-empty-p pass))
       (setf parameters
             (append parameters
                     (if sql-datum-password-variable
