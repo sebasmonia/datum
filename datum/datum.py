@@ -58,7 +58,15 @@ def query_loop():
                     printer.print_cursor_results(cursor)
                 print("\nRows affected:", row_count)
         except Exception as err:
-            print("---ERROR---\n", err, "\n---ERROR---", flush=True)
+            # Oracle tends to return lengthy error messages with non-printable
+            # characters that break datum. Print only the first line for those.
+            code, message, *_ = err.args
+            if f'[{code}] [Oracle]' in message:
+                message = message[0:message.index("\n")]
+            print("---ERROR---\n"
+                  "Code:", code, "\n"
+                  "Message:", message,"\n"
+                  "---ERROR---", flush=True)
         print("\n", prompt_header, sep="")
         query = prompt_for_query_or_command()
 
