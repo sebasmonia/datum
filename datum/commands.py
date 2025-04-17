@@ -150,7 +150,7 @@ def newline(args):
 
     if _config["newline_replacement"] == "\n":
         print('Printing newlines with no conversion (might break the display',
-              'of query output.')
+              'of query output).')
     else:
         print('Using the string "', _config["newline_replacement"],
               '" to print literal new lines in values.', sep='')
